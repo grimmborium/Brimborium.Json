@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Company></Company>
+    <Authors>Florian Grimm</Authors>
+    <Product>Brimborium.Json</Product>
+    <Title>Brimborium.Json</Title>
+    <Copyright>Copyright © 2020 Florian Grimm</Copyright>
+    <RootDirectory>$(MSBuildThisFileDirectory)</RootDirectory>
+    <BaseIntermediateOutputPath>$(RootDirectory)output\$(MSBuildProjectName)\obj\$(PlatformName)</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(RootDirectory)output\$(MSBuildProjectName)\bin\$(PlatformName)</BaseOutputPath>
+  </PropertyGroup>
+</Project>

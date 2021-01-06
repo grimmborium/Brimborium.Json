@@ -1,17 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30803.129
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AB5C4EC0-1D9F-483A-9DDA-C9F974B8678F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Json", "src\Brimborium.Json\Brimborium.Json.csproj", "{2E5CAE29-EA16-4101-87BE-AB998395BAED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Json", "src\Brimborium.Json\Brimborium.Json.csproj", "{2E5CAE29-EA16-4101-87BE-AB998395BAED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{535C27C8-C0FE-4971-B297-7030AF145372}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Json.Test", "test\Brimborium.Json.Test\Brimborium.Json.Test.csproj", "{49CB7047-F56A-4E79-8067-E832E7AC2202}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Json.Test", "test\Brimborium.Json.Test\Brimborium.Json.Test.csproj", "{49CB7047-F56A-4E79-8067-E832E7AC2202}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Json.Tool", "src\Brimborium.Json.Tool\Brimborium.Json.Tool.csproj", "{6485D35F-CA6C-4836-885E-20B412173BCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Json.Tool", "src\Brimborium.Json.Tool\Brimborium.Json.Tool.csproj", "{6485D35F-CA6C-4836-885E-20B412173BCC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Root", "_Root", "{AB2F8407-528D-42FF-8E55-3F79E4F2CCB5}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Benchmark", "Benchmark\Brimborium.Benchmark\Brimborium.Benchmark.csproj", "{F68917CE-D59E-4DE3-A194-F039B0F22E7E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark", "Benchmark", "{8678571A-A367-4254-B561-29C888A7DEB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Json.SourceGenerator", "src\Brimborium.Json.SourceGenerator\Brimborium.Json.SourceGenerator.csproj", "{25B297CE-A5A9-40DD-886D-4300713FA96A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +35,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2E5CAE29-EA16-4101-87BE-AB998395BAED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -62,10 +73,42 @@ Global
 		{6485D35F-CA6C-4836-885E-20B412173BCC}.Release|x64.Build.0 = Release|Any CPU
 		{6485D35F-CA6C-4836-885E-20B412173BCC}.Release|x86.ActiveCfg = Release|Any CPU
 		{6485D35F-CA6C-4836-885E-20B412173BCC}.Release|x86.Build.0 = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|x64.Build.0 = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Debug|x86.Build.0 = Debug|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|x64.ActiveCfg = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|x64.Build.0 = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|x86.ActiveCfg = Release|Any CPU
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E}.Release|x86.Build.0 = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|x64.Build.0 = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Debug|x86.Build.0 = Debug|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|x64.ActiveCfg = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|x64.Build.0 = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|x86.ActiveCfg = Release|Any CPU
+		{25B297CE-A5A9-40DD-886D-4300713FA96A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2E5CAE29-EA16-4101-87BE-AB998395BAED} = {AB5C4EC0-1D9F-483A-9DDA-C9F974B8678F}
 		{49CB7047-F56A-4E79-8067-E832E7AC2202} = {535C27C8-C0FE-4971-B297-7030AF145372}
 		{6485D35F-CA6C-4836-885E-20B412173BCC} = {AB5C4EC0-1D9F-483A-9DDA-C9F974B8678F}
+		{F68917CE-D59E-4DE3-A194-F039B0F22E7E} = {8678571A-A367-4254-B561-29C888A7DEB8}
+		{25B297CE-A5A9-40DD-886D-4300713FA96A} = {AB5C4EC0-1D9F-483A-9DDA-C9F974B8678F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7DA517BB-E9CF-413E-8DC5-E48A9117543C}
 	EndGlobalSection
 EndGlobal
