@@ -676,17 +676,17 @@ namespace Brimborium.Json.Resolvers.Internal {
             {
                 if (excludeNull || hasShouldSerialize)
                 {
-                    stringByteKeysField.Add(JsonWriter.GetEncodedPropertyName(item.Name));
+                    stringByteKeysField.Add(JsonWriterUtf8.GetEncodedPropertyName(item.Name));
                 }
                 else
                 {
                     if (i == 0)
                     {
-                        stringByteKeysField.Add(JsonWriter.GetEncodedPropertyNameWithBeginObject(item.Name));
+                        stringByteKeysField.Add(JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject(item.Name));
                     }
                     else
                     {
-                        stringByteKeysField.Add(JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator(item.Name));
+                        stringByteKeysField.Add(JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator(item.Name));
                     }
                 }
                 i++;
@@ -1016,11 +1016,11 @@ namespace Brimborium.Json.Resolvers.Internal {
                 byte[] rawField;
                 if (excludeNull || hasShouldSerialize)
                 {
-                    rawField = JsonWriter.GetEncodedPropertyName(item.Name);
+                    rawField = JsonWriterUtf8.GetEncodedPropertyName(item.Name);
                 }
                 else
                 {
-                    rawField = (index == 0) ? JsonWriter.GetEncodedPropertyNameWithBeginObject(item.Name) : JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator(item.Name);
+                    rawField = (index == 0) ? JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject(item.Name) : JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator(item.Name);
                 }
                 if (rawField.Length < 32)
                 {
@@ -1165,7 +1165,7 @@ namespace Brimborium.Json.Resolvers.Internal {
                 var automata = new AutomataDictionary();
                 for (int i = 0; i < info.Members.Length; i++)
                 {
-                    automata.Add(JsonWriter.GetEncodedPropertyNameWithoutQuotation(info.Members[i].Name), i);
+                    automata.Add(JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation(info.Members[i].Name), i);
                 }
 
                 var baseBytes = il.DeclareLocal(typeof(byte[]));
@@ -1523,13 +1523,13 @@ namespace Brimborium.Json.Resolvers.Internal {
 
             internal static class JsonWriter
             {
-                public static readonly MethodInfo GetEncodedPropertyNameWithBeginObject = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriter.GetEncodedPropertyNameWithBeginObject(default(string)));
+                public static readonly MethodInfo GetEncodedPropertyNameWithBeginObject = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject(default(string)));
 
-                public static readonly MethodInfo GetEncodedPropertyNameWithPrefixValueSeparator = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator(default(string)));
+                public static readonly MethodInfo GetEncodedPropertyNameWithPrefixValueSeparator = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator(default(string)));
 
-                public static readonly MethodInfo GetEncodedPropertyNameWithoutQuotation = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriter.GetEncodedPropertyNameWithoutQuotation(default(string)));
+                public static readonly MethodInfo GetEncodedPropertyNameWithoutQuotation = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation(default(string)));
 
-                public static readonly MethodInfo GetEncodedPropertyName = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriter.GetEncodedPropertyName(default(string)));
+                public static readonly MethodInfo GetEncodedPropertyName = ExpressionUtility.GetMethodInfo(() => Brimborium.Json.JsonWriterUtf8.GetEncodedPropertyName(default(string)));
 
                 public static readonly MethodInfo WriteNull = ExpressionUtility.GetMethodInfo((Brimborium.Json.JsonWriter writer) => writer.WriteNull());
                 public static readonly MethodInfo WriteRaw = ExpressionUtility.GetMethodInfo((Brimborium.Json.JsonWriter writer) => writer.WriteRaw(default(byte[])));

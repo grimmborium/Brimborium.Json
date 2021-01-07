@@ -18,8 +18,10 @@ namespace Brimborium.Json {
                 if (defaultResolver == null) {
                     defaultResolver = StandardResolver.Default;
                 }
-
                 return defaultResolver;
+            }
+            set {
+                defaultResolver = value; ;
             }
         }
 

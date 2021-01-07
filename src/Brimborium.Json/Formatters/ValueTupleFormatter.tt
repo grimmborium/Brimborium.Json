@@ -5,6 +5,7 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 #if NETSTANDARD
+#nullable disable
 
 using System;
 using Brimborium.Json.Internal;
@@ -26,17 +27,17 @@ namespace Brimborium.Json.Formatters.Internal
             nameCache<#= i #> = new byte[][]
             {
 <# for (var j = 1; j <= i; j++) { if (j == 1) { #>
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("<#= toItem(j) #>"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("<#= toItem(j) #>"),
 <# } else if (j == i) { #>
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("<#= toItem(j) #>"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("<#= toItem(j) #>"),
 <# } else { #>
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("<#= toItem(j) #>"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("<#= toItem(j) #>"),
 <# } } #>
             };
             dictionary<#= i #> = new AutomataDictionary
             {
 <# for (var j = 1; j <= i; j++) { #>
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("<#= toItem(j) #>"), <#= j - 1 #> },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("<#= toItem(j) #>"), <#= j - 1 #> },
 <# } #>
             };
 <# } #>

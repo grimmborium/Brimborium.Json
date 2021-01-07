@@ -1,46 +1,15 @@
-﻿#nullable disable
+﻿#nullable enable
 
 using System;
 //
 namespace Brimborium.Json {
     // JSON RFC: https://www.ietf.org/rfc/rfc4627.txt
     public abstract class JsonWriter {
-
-        public static byte[] GetEncodedPropertyName(string propertyName) {
-            var writer = new JsonWriterUtf8();
-            writer.WritePropertyName(propertyName);
-            return writer.ToUtf8ByteArray();
-        }
-
-        public static byte[] GetEncodedPropertyNameWithPrefixValueSeparator(string propertyName) {
-            var writer = new JsonWriterUtf8();
-            writer.WriteValueSeparator();
-            writer.WritePropertyName(propertyName);
-            return writer.ToUtf8ByteArray();
-        }
-
-        public static byte[] GetEncodedPropertyNameWithBeginObject(string propertyName) {
-            var writer = new JsonWriterUtf8();
-            writer.WriteBeginObject();
-            writer.WritePropertyName(propertyName);
-            return writer.ToUtf8ByteArray();
-        }
-
-        public static byte[] GetEncodedPropertyNameWithoutQuotation(string propertyName) {
-            var writer = new JsonWriterUtf8();
-            writer.WriteString(propertyName); // "propname"
-            var buf = writer.GetBuffer();
-            var result = new byte[buf.Count - 2];
-            Buffer.BlockCopy(buf.Array, buf.Offset + 1, result, 0, result.Length); // without quotation
-            return result;
-        }
-
         public virtual int CurrentOffset {
             get {
                 throw new InvalidProgramException();
             }
         }
-
 
         protected JsonWriter() {
         }
@@ -71,7 +40,8 @@ namespace Brimborium.Json {
         public abstract void WriteRawUnsafe(byte rawValue);
         public abstract void WriteSByte(sbyte value);
         public abstract void WriteSingle(Single value);
-        public abstract void WriteString(string value);
+        public abstract void WriteString(string? value);
+        public abstract void WriteStringWithoutQuotation(string value);
         public abstract void WriteTrue();
         public abstract void WriteUInt16(ushort value);
         public abstract void WriteUInt32(uint value);

@@ -1,4 +1,5 @@
 ﻿#if NETSTANDARD
+#nullable disable
 
 using System;
 using Brimborium.Json.Internal;
@@ -30,123 +31,123 @@ namespace Brimborium.Json.Formatters.Internal
         {
             nameCache1 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
             };
             dictionary1 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
             };
             nameCache2 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
             };
             dictionary2 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
             };
             nameCache3 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
             };
             dictionary3 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
             };
             nameCache4 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
             };
             dictionary4 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
             };
             nameCache5 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
             };
             dictionary5 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
             };
             nameCache6 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
             };
             dictionary6 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
             };
             nameCache7 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item7"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item7"),
             };
             dictionary7 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item7"), 6 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item7"), 6 },
             };
             nameCache8 = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Item1"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Item7"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Rest"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Item1"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item2"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item3"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item4"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item5"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item6"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Item7"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Rest"),
             };
             dictionary8 = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Item7"), 6 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Rest"), 7 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item1"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item2"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item3"), 2 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item4"), 3 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item5"), 4 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item6"), 5 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Item7"), 6 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Rest"), 7 },
             };
         }
     }
@@ -618,6 +619,7 @@ namespace Brimborium.Json.Formatters
 
 
     public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : IJsonFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
+        where TRest : notnull
     {
         static readonly byte[][] cache = TupleFormatterHelper.nameCache8;
         static readonly AutomataDictionary dictionary = TupleFormatterHelper.dictionary8;

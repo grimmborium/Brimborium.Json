@@ -1,4 +1,4 @@
-﻿#nullable disable
+﻿#nullable enable
 
 using System;
 using System.Text;
@@ -8,8 +8,48 @@ using System.Runtime.CompilerServices;
 //
 namespace Brimborium.Json {
     public sealed class JsonWriterUtf8 : JsonWriter {
-        static readonly byte[] emptyBytes = new byte[0];
+        private static readonly byte[] emptyBytes = new byte[0];
 
+        public static byte[] GetEncodedPropertyName(string propertyName) {
+            var writer = new JsonWriterUtf8(Array.Empty<byte>());
+            writer.WritePropertyName(propertyName);
+            return writer.GetBufferAndDestroy();
+        }
+
+        public static byte[] GetEncodedPropertyNameWithPrefixValueSeparator(string propertyName) {
+            var writer = new JsonWriterUtf8(Array.Empty<byte>());
+            writer.WriteValueSeparator();
+            writer.WritePropertyName(propertyName);
+            return writer.GetBufferAndDestroy();
+        }
+
+        public static byte[] GetEncodedPropertyNameWithBeginObject(string propertyName) {
+            var writer = new JsonWriterUtf8(Array.Empty<byte>());
+            writer.WriteBeginObject();
+            writer.WritePropertyName(propertyName);
+            return writer.GetBufferAndDestroy();
+        }
+
+        public static byte[] GetEncodedPropertyNameWithoutQuotation(string propertyName) {
+            var writer = new JsonWriterUtf8(Array.Empty<byte>());
+            writer.WriteString(propertyName); // "propname"
+            return writer.GetBufferAndDestroy();
+        }
+
+        private byte[] GetBufferAndDestroy() {
+            byte[] result;
+            if (this.buffer.Length == this.offset) {
+                result = this.buffer;
+            } else {
+                result = this.ToUtf8ByteArray();
+            }
+            this.buffer = Array.Empty<byte>();
+            this.offset = 0;
+            return result;
+
+        }
+
+        // BufferPool.Default.Rent();
         // write direct from UnsafeMemory
         internal byte[] buffer;
 
@@ -26,7 +66,7 @@ namespace Brimborium.Json {
         }
 
         public JsonWriterUtf8() {
-            this.buffer = null;
+            this.buffer = Array.Empty<byte>();
             this.offset = 0;
         }
 
@@ -41,12 +81,14 @@ namespace Brimborium.Json {
         }
 
         public override byte[] ToUtf8ByteArray() {
-            if (buffer == null) return emptyBytes;
+            if (buffer == null) {
+                return emptyBytes;
+            }
             return ByteArrayUtil.FastCloneWithResize(buffer, offset);
         }
 
         public override string ToString() {
-            if (buffer == null) return null;
+            if (buffer == null) return string.Empty;
             return Encoding.UTF8.GetString(buffer, 0, offset);
         }
 
@@ -67,7 +109,7 @@ namespace Brimborium.Json {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> GetBuffer(int offset, int appendLength) { 
+        public Span<byte> GetBuffer(int offset, int appendLength) {
             ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, appendLength);
             return new Span<byte>(this.buffer, offset, appendLength);
         }
@@ -243,24 +285,20 @@ namespace Brimborium.Json {
             offset += NumberConverter.WriteInt64(ref buffer, offset, value);
         }
 
-        public override void WriteString(string value) {
+        public override void WriteString(string? value) {
             if (value == null) {
                 WriteNull();
                 return;
             }
 
-            // single-path escape
+            var max = Utils.GetUtf8ByteCountForStringToEncode(value) + 2;
+            ByteArrayUtil.EnsureCapacity(ref buffer, offset, max);
 
             // nonescaped-ensure
             var startoffset = offset;
-            var max = StringEncoding.UTF8.GetMaxByteCount(value.Length) + 2;
-            ByteArrayUtil.EnsureCapacity(ref buffer, startoffset, max);
-
-            var from = 0;
-            //var to = value.Length;
-
             buffer[offset++] = (byte)'\"';
 
+            var from = 0;
             // for JIT Optimization, for-loop i < str.Length
             for (int i = 0; i < value.Length; i++) {
                 byte escapeChar = default(byte);
@@ -393,9 +431,273 @@ namespace Brimborium.Json {
             buffer[offset++] = (byte)'\"';
         }
 
+        public override void WriteStringWithoutQuotation(string value) {
+            if (value == null) {
+                WriteNull();
+                return;
+            }
+
+            var max = Utils.GetUtf8ByteCountForStringToEncode(value);
+            ByteArrayUtil.EnsureCapacity(ref buffer, offset, max);
+
+            // nonescaped-ensure
+            var startoffset = offset;
+
+            var from = 0;
+            // for JIT Optimization, for-loop i < str.Length
+            for (int i = 0; i < value.Length; i++) {
+                byte escapeChar = default(byte);
+                switch (value[i]) {
+                    case '"':
+                        escapeChar = (byte)'"';
+                        break;
+                    case '\\':
+                        escapeChar = (byte)'\\';
+                        break;
+                    case '\b':
+                        escapeChar = (byte)'b';
+                        break;
+                    case '\f':
+                        escapeChar = (byte)'f';
+                        break;
+                    case '\n':
+                        escapeChar = (byte)'n';
+                        break;
+                    case '\r':
+                        escapeChar = (byte)'r';
+                        break;
+                    case '\t':
+                        escapeChar = (byte)'t';
+                        break;
+                    // use switch jumptable
+                    case (char)0:
+                    case (char)1:
+                    case (char)2:
+                    case (char)3:
+                    case (char)4:
+                    case (char)5:
+                    case (char)6:
+                    case (char)7:
+                    case (char)11:
+                    case (char)14:
+                    case (char)15:
+                    case (char)16:
+                    case (char)17:
+                    case (char)18:
+                    case (char)19:
+                    case (char)20:
+                    case (char)21:
+                    case (char)22:
+                    case (char)23:
+                    case (char)24:
+                    case (char)25:
+                    case (char)26:
+                    case (char)27:
+                    case (char)28:
+                    case (char)29:
+                    case (char)30:
+                    case (char)31:
+                    case (char)32:
+                    case (char)33:
+                    case (char)35:
+                    case (char)36:
+                    case (char)37:
+                    case (char)38:
+                    case (char)39:
+                    case (char)40:
+                    case (char)41:
+                    case (char)42:
+                    case (char)43:
+                    case (char)44:
+                    case (char)45:
+                    case (char)46:
+                    case (char)47:
+                    case (char)48:
+                    case (char)49:
+                    case (char)50:
+                    case (char)51:
+                    case (char)52:
+                    case (char)53:
+                    case (char)54:
+                    case (char)55:
+                    case (char)56:
+                    case (char)57:
+                    case (char)58:
+                    case (char)59:
+                    case (char)60:
+                    case (char)61:
+                    case (char)62:
+                    case (char)63:
+                    case (char)64:
+                    case (char)65:
+                    case (char)66:
+                    case (char)67:
+                    case (char)68:
+                    case (char)69:
+                    case (char)70:
+                    case (char)71:
+                    case (char)72:
+                    case (char)73:
+                    case (char)74:
+                    case (char)75:
+                    case (char)76:
+                    case (char)77:
+                    case (char)78:
+                    case (char)79:
+                    case (char)80:
+                    case (char)81:
+                    case (char)82:
+                    case (char)83:
+                    case (char)84:
+                    case (char)85:
+                    case (char)86:
+                    case (char)87:
+                    case (char)88:
+                    case (char)89:
+                    case (char)90:
+                    case (char)91:
+                    default:
+                        continue;
+                }
+
+                max += 1;
+                ByteArrayUtil.EnsureCapacity(ref buffer, startoffset, max); // check +escape capacity
+
+                offset += StringEncoding.UTF8.GetBytes(value, from, i - from, buffer, offset);
+                from = i + 1;
+                buffer[offset++] = (byte)'\\';
+                buffer[offset++] = escapeChar;
+            }
+
+            if (from != value.Length) {
+                offset += StringEncoding.UTF8.GetBytes(value, from, value.Length - from, buffer, offset);
+            }
+        }
+
         public override void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key) {
 #warning here WriteStartProperty
+            //jsonSerializationInfo.Properties
             throw new NotImplementedException();
+        }
+
+        public class Utils {
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static int GetUtf8ByteCountForStringToEncode(string value) {
+                var max = StringEncoding.UTF8.GetByteCount(value);
+
+                for (int i = 0; i < value.Length; i++) {
+                    switch (value[i]) {
+                        case '"':
+                            break;
+                        case '\\':
+                            break;
+                        case '\b':
+                            break;
+                        case '\f':
+                            break;
+                        case '\n':
+                            break;
+                        case '\r':
+                            break;
+                        case '\t':
+                            break;
+                        // use switch jumptable
+                        case (char)0:
+                        case (char)1:
+                        case (char)2:
+                        case (char)3:
+                        case (char)4:
+                        case (char)5:
+                        case (char)6:
+                        case (char)7:
+                        case (char)11:
+                        case (char)14:
+                        case (char)15:
+                        case (char)16:
+                        case (char)17:
+                        case (char)18:
+                        case (char)19:
+                        case (char)20:
+                        case (char)21:
+                        case (char)22:
+                        case (char)23:
+                        case (char)24:
+                        case (char)25:
+                        case (char)26:
+                        case (char)27:
+                        case (char)28:
+                        case (char)29:
+                        case (char)30:
+                        case (char)31:
+                        case (char)32:
+                        case (char)33:
+                        case (char)35:
+                        case (char)36:
+                        case (char)37:
+                        case (char)38:
+                        case (char)39:
+                        case (char)40:
+                        case (char)41:
+                        case (char)42:
+                        case (char)43:
+                        case (char)44:
+                        case (char)45:
+                        case (char)46:
+                        case (char)47:
+                        case (char)48:
+                        case (char)49:
+                        case (char)50:
+                        case (char)51:
+                        case (char)52:
+                        case (char)53:
+                        case (char)54:
+                        case (char)55:
+                        case (char)56:
+                        case (char)57:
+                        case (char)58:
+                        case (char)59:
+                        case (char)60:
+                        case (char)61:
+                        case (char)62:
+                        case (char)63:
+                        case (char)64:
+                        case (char)65:
+                        case (char)66:
+                        case (char)67:
+                        case (char)68:
+                        case (char)69:
+                        case (char)70:
+                        case (char)71:
+                        case (char)72:
+                        case (char)73:
+                        case (char)74:
+                        case (char)75:
+                        case (char)76:
+                        case (char)77:
+                        case (char)78:
+                        case (char)79:
+                        case (char)80:
+                        case (char)81:
+                        case (char)82:
+                        case (char)83:
+                        case (char)84:
+                        case (char)85:
+                        case (char)86:
+                        case (char)87:
+                        case (char)88:
+                        case (char)89:
+                        case (char)90:
+                        case (char)91:
+                        default:
+                            continue;
+                    }
+                    max++;
+                }
+
+                return max;
+            }
+
         }
     }
 }
