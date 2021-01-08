@@ -8,7 +8,9 @@ namespace Brimborium.Json.Test
         [Fact]
         public void Test1()
         {
-
+            var a = Array.Empty<byte>();
+            var b = Array.Empty<byte>();
+            Assert.Same(a, b);
         }
     }
 }

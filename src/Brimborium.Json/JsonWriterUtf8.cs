@@ -49,6 +49,8 @@ namespace Brimborium.Json {
 
         }
 
+        private bool _OwnBuffer;
+
         // BufferPool.Default.Rent();
         // write direct from UnsafeMemory
         internal byte[] buffer;
@@ -70,9 +72,18 @@ namespace Brimborium.Json {
             this.offset = 0;
         }
 
-        public JsonWriterUtf8(byte[] initialBuffer) {
-            this.buffer = initialBuffer;
+        public JsonWriterUtf8(byte[]? initialBuffer) {
             this.offset = 0;
+            if (initialBuffer is null) {
+                this._OwnBuffer = true;
+                this.buffer = Array.Empty<byte>();
+            } else if (ReferenceEquals(initialBuffer, Array.Empty<byte>())) {
+                this._OwnBuffer = true;
+                this.buffer = initialBuffer;
+            } else {
+                this._OwnBuffer = false;
+                this.buffer = initialBuffer;
+            }
         }
 
         public override ArraySegment<byte> GetBuffer() {
