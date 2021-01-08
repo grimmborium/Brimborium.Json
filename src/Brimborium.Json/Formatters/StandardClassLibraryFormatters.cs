@@ -706,13 +706,13 @@ namespace Brimborium.Json.Formatters.Internal
         {
             keyValuePairName = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Key"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Value"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Key"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Value"),
             };
             keyValuePairAutomata = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Key"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Value"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Key"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Value"), 1 },
             };
         }
     }

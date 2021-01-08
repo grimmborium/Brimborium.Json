@@ -167,7 +167,7 @@ namespace Brimborium.Json.Formatters
 
             for (int i = 0; i < names.Count; i++)
             {
-                nameValueMapping.Add(JsonWriter.GetEncodedPropertyNameWithoutQuotation(names[i]), (T)values[i]);
+                nameValueMapping.Add(JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation(names[i]), (T)values[i]);
                 valueNameMapping[(T)values[i]] = names[i];
             }
 

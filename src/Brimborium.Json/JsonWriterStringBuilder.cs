@@ -132,6 +132,10 @@ namespace Brimborium.Json {
             throw new NotImplementedException();
         }
 
+        public override void WriteStringWithoutQuotation(string value) {
+            throw new NotImplementedException();
+        }
+
         public override void WriteTrue() {
             throw new NotImplementedException();
         }

@@ -29,12 +29,12 @@ namespace Brimborium.Json {
         T DeserializeFromPropertyName(JsonReader reader, IJsonFormatterResolver formatterResolver);
     }
 
-    public interface IObjectPropertyNameFormatterRW<T, TJsonWriter, TJsonReader>
-        where TJsonWriter : JsonWriter
-        where TJsonReader : JsonReader {
-        void SerializeToPropertyNameRW(TJsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
-        T DeserializeFromPropertyNameRW(TJsonReader reader, IJsonFormatterResolver formatterResolver);
-    }
+    //public interface IObjectPropertyNameFormatterRW<T, TJsonWriter, TJsonReader>
+    //    where TJsonWriter : JsonWriter
+    //    where TJsonReader : JsonReader {
+    //    void SerializeToPropertyNameRW(TJsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
+    //    T DeserializeFromPropertyNameRW(TJsonReader reader, IJsonFormatterResolver formatterResolver);
+    //}
 
 
     public static class JsonFormatterExtensions {

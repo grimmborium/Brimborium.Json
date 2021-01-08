@@ -20,6 +20,7 @@
         typeof(bool), 
     };
 #>
+#nullable disable
 using System;
 using Brimborium.Json.Internal;
 

@@ -121,7 +121,7 @@ namespace Brimborium.Json {
             throw new NotImplementedException();
         }
 
-        public override void WriteString(string value) {
+        public override void WriteString(string? value) {
             throw new NotImplementedException();
         }
 
@@ -146,6 +146,10 @@ namespace Brimborium.Json {
         }
 
         public override void WriteStartProperty(JsonSerializationInfo jsonSerializationInfo, int key) {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteStringWithoutQuotation(string value) {
             throw new NotImplementedException();
         }
     }

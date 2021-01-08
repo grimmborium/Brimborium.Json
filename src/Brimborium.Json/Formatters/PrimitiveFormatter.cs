@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using Brimborium.Json.Internal;
 
 namespace Brimborium.Json.Formatters

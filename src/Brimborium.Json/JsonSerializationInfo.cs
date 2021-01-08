@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
 using Brimborium.Json.Internal;
 
 namespace Brimborium.Json {
@@ -34,45 +35,62 @@ namespace Brimborium.Json {
     }
 
     public class JsonPropertySerializationData {
+        private string _Name;
+        private int _Order;
+        private bool _IsReadable;
+        private bool _IsWritable;
+
+        public JsonPropertySerializationData(string name, int order, bool isReadable, bool isWritable) {
+            this._Name = name;
+            this._Order = order;
+            this._IsReadable = isReadable;
+            this._IsWritable = isWritable;
+        }
+
         public JsonPropertySerializationData(
                 string name,
                 int order,
                 bool isReadable,
-                bool isWritable
+                bool isWritable,
+                bool isConstructorParameter
             ) {
             this.Name = name;
             this.Order = order;
             this.IsReadable = isReadable;
             this.IsWritable = isWritable;
+            this.IsConstructorParameter = isConstructorParameter;
         }
 
         public string Name { get; set; }
         public int Order { get; set; }
         public bool IsReadable { get; set; }
         public bool IsWritable { get; set; }
+        public bool IsConstructorParameter { get; set; }
     }
 
 
     public class JsonSerializationInfo {
-        private AutomataDictionary                   _Dictionary;
+        private AutomataDictionary _Dictionary;
         public JsonSerializationInfo(JsonSerializationInfoBuilder builder) {
-             this._Dictionary = new AutomataDictionary();
+            this._Dictionary = new AutomataDictionary();
             this.Properties = builder.Properties.Select(
                 p => new JsonPropertySerializationInfo(
                     p.Name,
                     p.Order,
                     p.IsReadable,
-                    p.IsWritable
+                    p.IsWritable,
+                    p.IsConstructorParameter
                     )).ToArray();
-                    foreach(var property in this.Properties){
-
-            this._Dictionary.Add(JsonWriter.GetEncodedPropertyNameWithoutQuotation(property.Name), property.Order);
-                    }
+            foreach (var property in this.Properties) {
+                if (property.IsReadable) { 
+                    this._Dictionary.Add(property.EncodedNameUtf8, property.Order);
+                }
+            }
         }
 
         public JsonPropertySerializationInfo[] Properties { get; }
 
-        public bool TryGetParameterValue(ArraySegment<byte> keyString,[MaybeNullWhen(false)] out int key) {
+        public bool TryGetParameterValue(ArraySegment<byte> keyString, [MaybeNullWhen(false)] out int key) {
             throw new NotImplementedException();
         }
     }
@@ -81,18 +99,23 @@ namespace Brimborium.Json {
                 string name,
                 int order,
                 bool isReadable,
-                bool isWritable
+                bool isWritable,
+                bool isConstructorParameter
             ) {
+            this.EncodedNameUtf8 = JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation(name);
             this.Name = name;
             this.Order = order;
             this.IsReadable = isReadable;
             this.IsWritable = isWritable;
+            this.IsConstructorParameter = isConstructorParameter;
         }
-
+        public byte[] EncodedNameUtf8 { get; }
         public string Name { get; }
         public int Order { get; }
         public bool IsReadable { get; }
         public bool IsWritable { get; }
+        public bool IsConstructorParameter { get;  }
+
     }
 
 }

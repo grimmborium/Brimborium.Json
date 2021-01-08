@@ -964,13 +964,13 @@ namespace Brimborium.Json.Formatters.Internal
         {
             groupingName = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("Key"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("Elements"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithBeginObject("Key"),
+                JsonWriterUtf8.GetEncodedPropertyNameWithPrefixValueSeparator("Elements"),
             };
             groupingAutomata = new AutomataDictionary
             {
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Key"), 0 },
-                {JsonWriter.GetEncodedPropertyNameWithoutQuotation("Elements"), 1 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Key"), 0 },
+                {JsonWriterUtf8.GetEncodedPropertyNameWithoutQuotation("Elements"), 1 },
             };
         }
     }

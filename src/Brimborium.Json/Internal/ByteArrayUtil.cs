@@ -6,40 +6,33 @@ using System.Text;
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Brimborium.Json.Internal
-{
-    public static class ByteArrayUtil
-    {
+namespace Brimborium.Json.Internal {
+    public static class ByteArrayUtil {
         const int ArrayMaxSize = 0x7FFFFFC7; // https://msdn.microsoft.com/en-us/library/system.array
 
 #if NETSTANDARD
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        public static void EnsureCapacity(ref byte[] bytes, int offset, int appendLength)
-        {
+        public static void EnsureCapacity(ref byte[] bytes, int offset, int appendLength) {
             var newLength = offset + appendLength;
 
             // If null(most case fisrt time) fill byte.
-            if (bytes == null)
-            {
+            if (bytes == null) {
                 bytes = new byte[newLength];
                 return;
             }
 
             // like MemoryStream.EnsureCapacity
             var current = bytes.Length;
-            if (newLength > current)
-            {
+            if (newLength > current) {
                 int num = newLength;
-                if (num < 256)
-                {
+                if (num < 256) {
                     num = 256;
                     FastResize(ref bytes, num);
                     return;
                 }
 
-                if (current == ArrayMaxSize)
-                {
+                if (current == ArrayMaxSize) {
                     throw new InvalidOperationException("byte[] size reached maximum size of array(0x7FFFFFC7), can not write to single byte[]. Details: https://msdn.microsoft.com/en-us/library/system.array");
                 }
 
@@ -47,11 +40,8 @@ namespace Brimborium.Json.Internal
                 if (newSize < 0) // overflow
                 {
                     num = ArrayMaxSize;
-                }
-                else
-                {
-                    if (num < newSize)
-                    {
+                } else {
+                    if (num < newSize) {
                         num = newSize;
                     }
                 }
@@ -64,19 +54,18 @@ namespace Brimborium.Json.Internal
 #if NETSTANDARD
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        public static void FastResize(ref byte[] array, int newSize)
-        {
-            if (newSize < 0) throw new ArgumentOutOfRangeException("newSize");
+        public static void FastResize(ref byte[] array, int newSize) {
+            if (newSize < 0) {
+                throw new ArgumentOutOfRangeException("newSize");
+            }
 
             byte[] array2 = array;
-            if (array2 == null)
-            {
+            if (array2 == null) {
                 array = new byte[newSize];
                 return;
             }
 
-            if (array2.Length != newSize)
-            {
+            if (array2.Length != newSize) {
                 byte[] array3 = new byte[newSize];
                 Buffer.BlockCopy(array2, 0, array3, 0, (array2.Length > newSize) ? newSize : array2.Length);
                 array = array3;
@@ -90,19 +79,24 @@ namespace Brimborium.Json.Internal
 #if NETSTANDARD
             unsafe
 #endif
-            byte[] FastCloneWithResize(byte[] src, int newSize)
-        {
-            if (newSize < 0) throw new ArgumentOutOfRangeException("newSize");
-            if (src.Length < newSize) throw new ArgumentException("length < newSize");
+            byte[] FastCloneWithResize(byte[] src, int newSize) {
+            if (newSize < 0) {
+                throw new ArgumentOutOfRangeException("newSize");
+            }
 
-            if (src == null) return new byte[newSize];
+            if (src.Length < newSize) {
+                throw new ArgumentException("length < newSize");
+            }
+
+            if (src == null) {
+                return new byte[newSize];
+            }
 
             byte[] dst = new byte[newSize];
 
 #if NETSTANDARD && !NET45
             fixed (byte* pSrc = &src[0])
-            fixed (byte* pDst = &dst[0])
-            {
+            fixed (byte* pDst = &dst[0]) {
                 Buffer.MemoryCopy(pSrc, pDst, dst.Length, newSize);
             }
 #else
