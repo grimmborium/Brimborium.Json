@@ -47,7 +47,7 @@ namespace Brimborium.Json.Specification {
                 this.Namespace = type.Namespace;
                 this.Name = type.Name;
                 this.FullName = type.FullName;
-                type.BaseType
+                //type.BaseType
             }
         }
     }

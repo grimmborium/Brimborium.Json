@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Brimborium.Json\Brimborium.Json.csproj" />
+    <ProjectReference Include="..\Brimborium.Json\Brimborium.Json.csproj"/>
   </ItemGroup>
 
 </Project>
