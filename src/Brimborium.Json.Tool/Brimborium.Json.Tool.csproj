@@ -2,12 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
-    -->
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
 
-       <PackAsTool>true</PackAsTool>
+    <PackAsTool>true</PackAsTool>
     <ToolCommandName>BrimboriumJson</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
@@ -17,6 +14,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Compilers" Version="3.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Json\Brimborium.Json.csproj" />
   </ItemGroup>
 
 </Project>
