@@ -70,6 +70,7 @@ namespace Brimborium.Json {
         public JsonWriterUtf8() {
             this.buffer = Array.Empty<byte>();
             this.offset = 0;
+            this._OwnBuffer = false;
         }
 
         public JsonWriterUtf8(byte[]? initialBuffer) {

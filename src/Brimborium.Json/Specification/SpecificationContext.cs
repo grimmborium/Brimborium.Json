@@ -5,16 +5,16 @@ using System.Reflection;
 
 namespace Brimborium.Json.Specification {
     public class SpecificationContext {
-        public readonly Dictionary<string, ProjectSpecification> Assemblies;
+        public readonly Dictionary<string, AssemblySpecification> Assemblies;
         public SpecificationContext() {
-            this.Assemblies = new Dictionary<string, ProjectSpecification>();
+            this.Assemblies = new Dictionary<string, AssemblySpecification>();
         }
 
         public bool TryAddProjectSpecification(
             Assembly assembly,
-            out ProjectSpecification result
+            out AssemblySpecification result
             ) {
-            var search = new ProjectSpecification();
+            var search = new AssemblySpecification();
             search.SetAssembly(assembly);
             if (this.Assemblies.TryGetValue(search.AssemblyName!, out var found)) {
                 result = found;

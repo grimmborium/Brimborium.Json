@@ -1,9 +1,17 @@
-﻿using System;
+﻿using Brimborium.Json.Specification;
+
+using System;
+using System.Linq;
 
 namespace SampleApp1 {
     class Program {
         static void Main(string[] args) {
-            Console.WriteLine("Hello World!");
+            var projectJsonSpecification = new SampleLibrary2.ProjectJsonSpecification();
+            var spec2 = projectJsonSpecification.GetSpecification();
+            System.Diagnostics.Debug.Assert("SampleLibrary2Specification" == spec2.Assemblies.First().AssemblyName);
+            Console.WriteLine();
+
+            Console.WriteLine("- fini -");
         }
     }
 }
