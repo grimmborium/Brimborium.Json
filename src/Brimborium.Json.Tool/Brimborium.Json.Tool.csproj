@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
-
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>BrimboriumJson</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <TargetFrameworks>netcoreapp3.1;net5.0;netstandard2.0</TargetFrameworks>
+    <!--
+        <ToolCommandName>BrimboriumJson</ToolCommandName>
+        <PackAsTool>true</PackAsTool>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+    -->
   </PropertyGroup>
 
   <ItemGroup>

@@ -7,28 +7,40 @@ using System.CommandLine.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Brimborium.Json.Tool
-{
-    class Program
-    {
-        static async Task<int> Main(string[] args)
-        {
+namespace Brimborium.Json.Tool {
+    class Program {
+        static async Task<int> Main(string[] args) {
             var rootCommand = new RootCommand();
-            rootCommand.Add(new Option<int>("--an-int"));
-            rootCommand.Add(new Option<string>("--a-string"));
+            // rootCommand.Add(new Option<int>("--an-int"));
+            // rootCommand.Add(new Option<string>("--a-string"));
+            // int anInt, string aString
+
+            rootCommand.Add(new Option<string[]>(new string[] { "--solution", "-s" }, "Solution"));
+            rootCommand.Add(new Option<string[]>(new string[] { "--project", "-p" }, "Project"));
 
             //rootCommand.Handler = System.CommandLine.Invocation.CommandHandler.Create<int, string>(DoSomething);
-            rootCommand.Handler = CommandHandler.Create(async(int anInt, string aString, IConsole console, CancellationToken cancellationToken) => {
-                console.Out.WriteLine("Hello World");
-                await Task.Delay(1000, cancellationToken);
-                console.Out.WriteLine("-fini-");
+            rootCommand.Handler = CommandHandler.Create(async (string solution, string[] arrProject, IConsole console, CancellationToken cancellationToken) => {
+                try {
+                    int result = await Generate(solution, arrProject ?? Array.Empty<string>(), console, cancellationToken);
+                    return result;
+                } catch (System.Exception error) {
+                    console.Error.WriteLine(error.ToString());
+                    return 1;
+                }
             });
 
             return await rootCommand.InvokeAsync(args);
         }
 
-        public static int DoSomething(int anInt, string aString) {
+        public static async Task<int> Generate(string solution, string[] arrProject, IConsole console, CancellationToken cancellationToken) {
             /* do something */
+            console.Out.WriteLine("Generate");
+            console.Out.WriteLine($"Solution: {solution}");
+            foreach (var project in arrProject) {
+                console.Out.WriteLine($"Project: {project}");
+            }
+            await Task.Delay(1000, cancellationToken);
+            console.Out.WriteLine("-fini-");
             return 0;
         }
         /*
