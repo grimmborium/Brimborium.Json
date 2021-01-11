@@ -6,7 +6,7 @@ namespace Brimborium.Disguise {
     public class ContextDisguise {
         public readonly Dictionary<AssemblyIdentity, AssemblyDisguise> Assembly;
 
-        protected ContextDisguise() {
+        public ContextDisguise() {
             this.Assembly = new Dictionary<AssemblyIdentity, AssemblyDisguise>(AssemblyIdentityEqualityComparer.Instance);
         }
 

@@ -16,9 +16,17 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0-2.final" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0-2.final" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.9.0-2.final" />
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.9.0-2.final">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Disguise.CompileTime\Brimborium.Disguise.CompileTime.csproj" />
+    <ProjectReference Include="..\Brimborium.Disguise.Library\Brimborium.Disguise.Library.csproj" />
+    <ProjectReference Include="..\Brimborium.Disguise.RunTime\Brimborium.Disguise.RunTime.csproj" />
+    <ProjectReference Include="..\Brimborium.Disguise\Brimborium.Disguise.csproj" />
     <ProjectReference Include="..\Brimborium.Json\Brimborium.Json.csproj" />
   </ItemGroup>
 

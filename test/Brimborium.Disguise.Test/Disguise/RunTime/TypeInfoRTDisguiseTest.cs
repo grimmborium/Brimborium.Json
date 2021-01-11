@@ -6,9 +6,16 @@ using Brimborium.Disguise;
 namespace Brimborium.Disguise.RunTime {
     public class TypeInfoRTDisguiseTest {
         [Fact]
-        public void Test1()
+        public void TypeInfoRTDisguise_Name1()
         {
-            var sut = new TypeInfoRTDisguise(typeof(Hugo.Gna));
+            var contextDisguise = new ContextDisguise();
+            var sut = new TypeInfoRTDisguise(typeof(Hugo.Gna), contextDisguise);
+            Assert.Equal("Gna", sut.Name);
+        }
+
+        [Fact]
+        public void TypeInfoRTDisguise_Name2() {
+            var sut = new TypeInfoRTDisguise(typeof(Hugo.Gna), null);
             Assert.Equal("Gna", sut.Name);
         }
     }

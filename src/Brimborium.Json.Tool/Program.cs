@@ -7,6 +7,9 @@ using System.CommandLine.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Brimborium.Disguise;
+using Brimborium.Disguise.CompileTime;
+
 namespace Brimborium.Json.Tool {
     class Program {
         static async Task<int> Main(string[] args) {
@@ -34,12 +37,16 @@ namespace Brimborium.Json.Tool {
 
         public static async Task<int> Generate(string solution, string[] arrProject, IConsole console, CancellationToken cancellationToken) {
             /* do something */
+            WorkspaceUtility workspaceUtility = WorkspaceUtility.Create(null, null);
             console.Out.WriteLine("Generate");
             console.Out.WriteLine($"Solution: {solution}");
+            if (!string.IsNullOrEmpty(solution)) { 
+                await workspaceUtility.OpenSolutionAsync(solution, cancellationToken);
+            }
             foreach (var project in arrProject) {
                 console.Out.WriteLine($"Project: {project}");
+                await workspaceUtility.OpenProjectAsync(project, cancellationToken);
             }
-            await Task.Delay(1000, cancellationToken);
             console.Out.WriteLine("-fini-");
             return 0;
         }

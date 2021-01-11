@@ -1,20 +1,28 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 
+using System.Threading;
+
 namespace Brimborium.Disguise.CompileTime {
     public class TypeInfoCTDisguise : TypeInfoDisguise {
-        private readonly TypeInfo _TypeInfo;
+        //private readonly TypeInfo _TypeInfo;
+        public readonly ITypeSymbol TypeSymbol;
 
-        public TypeInfoCTDisguise(TypeInfo typeInfo, ContextDisguise? contextDisguise) 
-            :base(contextDisguise) {
-            this._TypeInfo = typeInfo;
+        public TypeInfoCTDisguise(ITypeSymbol typeSymbol, ContextDisguise? contextDisguise)
+            : base(contextDisguise) {
+            this.TypeSymbol = typeSymbol;
         }
 
-        public override string Name => throw new System.NotImplementedException();
+        public override string Name => this.TypeSymbol.Name;
 
-        public override string Namespace => throw new System.NotImplementedException();
+        public override string Namespace => (this.TypeSymbol.ContainingNamespace is null)
+            ? string.Empty
+            : this.TypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-        public override AssemblyDisguise Assembly => throw new System.NotImplementedException();
+        public override AssemblyDisguise Assembly => (this.TypeSymbol.ContainingAssembly is null)
+            ? string.Empty
+            : this.TypeSymbol.ContainingAssembly.Name;
+
     }
 }
 
