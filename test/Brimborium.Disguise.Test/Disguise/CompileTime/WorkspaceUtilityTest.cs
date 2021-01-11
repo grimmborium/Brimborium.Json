@@ -13,14 +13,14 @@ namespace Brimborium.Disguise.CompileTime {
                 contextDisguise,
                 default);
             Assert.NotNull(solution);
-            Assert.True(contextDisguise.Assembly.Count > 2);
-            foreach (var assembly in contextDisguise.Assembly.Values) {
+            Assert.True(contextDisguise.Assemblies.Count > 2);
+            foreach (var assembly in contextDisguise.Assemblies.Values) {
                 if (assembly is AssemblyCTDisguise assemblyCT) {
                     var compilation = await assemblyCT.GetCompilationAsync();
                     
                 }
             }
-            foreach (var assembly in contextDisguise.Assembly.Values) {
+            foreach (var assembly in contextDisguise.Assemblies.Values) {
                 if (assembly is AssemblyCTDisguise assemblyCT) {
                     assemblyCT.Project.n
                 }
@@ -47,7 +47,7 @@ namespace Brimborium.Disguise.CompileTime {
                 contextDisguise,
                 default);
             Assert.NotNull(project);
-            Assert.True(contextDisguise.Assembly.Count == 1);
+            Assert.True(contextDisguise.Assemblies.Count == 1);
             //var assembly = new AssemblyCTDisguise(project, contextDisguise);
             //var projectCompilation = await project.GetCompilationAsync(default);
             //Assert.NotNull(projectCompilation);

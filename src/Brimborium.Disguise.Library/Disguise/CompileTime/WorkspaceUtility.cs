@@ -72,7 +72,7 @@ namespace Brimborium.Disguise.CompileTime {
             }
             Solution solution = await this.Workspace.OpenSolutionAsync(solutionFilePath, cancellationToken: cancellationToken);
             this.Solution = solution;
-            await AddProjectsAsync(contextDisguise, solution);
+            await AddProjectsAsync(solution, contextDisguise);
             return solution;
         }
 
@@ -83,7 +83,7 @@ namespace Brimborium.Disguise.CompileTime {
             if (this.Solution is null) {
                 Project project = await this.Workspace.OpenProjectAsync(projectFilePath, cancellationToken: cancellationToken);
                 this.Solution = project.Solution;
-                await AddProjectsAsync(contextDisguise, this.Solution);
+                await AddProjectsAsync(this.Solution, contextDisguise);
                 return project;
             } else {
                 Project? project = this.Solution.Projects.FirstOrDefault(p => string.Equals(p.FilePath, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
@@ -92,28 +92,36 @@ namespace Brimborium.Disguise.CompileTime {
                     project = this.Solution.Projects.FirstOrDefault(p => string.Equals(p.Name, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
                 }
 
+                if (project is object) {
+                    await AddProjectAsync(project, contextDisguise);
+                }
+
                 return project;
             }
         }
 
-        private  async Task AddProjectsAsync(ContextDisguise contextDisguise, Solution solution) {
+        private  async Task AddProjectsAsync(Solution solution, ContextDisguise contextDisguise) {
             foreach (var project in solution.Projects) {
-                var assembly = new AssemblyCTDisguise(project, contextDisguise);
-                // var compilation = await project.GetCompilationAsync(cancellationToken);
-                var assemblyIdentity = new AssemblyIdentity(project.AssemblyName);
-                if (contextDisguise.TryGetAssembly(assemblyIdentity, out var assemblyFound)) {
-                    if (assemblyFound is AssemblyCTDisguise assemblyCTDisguise) {
-                        if (ReferenceEquals(assemblyCTDisguise.Project, project)) {
-                            continue;
-                        } else {
-                            assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
-                        }
-                    }
-                } else {
-                    assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
-                }
-                contextDisguise.Assembly[assemblyIdentity] = assembly;
+                await AddProjectAsync(project, contextDisguise);
             }
+        }
+
+        private static async Task AddProjectAsync(Project project, ContextDisguise contextDisguise) {
+            var assembly = new AssemblyCTDisguise(project, contextDisguise);
+            // var compilation = await project.GetCompilationAsync(cancellationToken);
+            var assemblyIdentity = new AssemblyIdentity(project.AssemblyName);
+            if (contextDisguise.TryGetAssembly(assemblyIdentity, out var assemblyFound)) {
+                if (assemblyFound is AssemblyCTDisguise assemblyCTDisguise) {
+                    if (ReferenceEquals(assemblyCTDisguise.Project, project)) {
+                        return;
+                    } else {
+                        assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
+                    }
+                }
+            } else {
+                assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
+            }
+            contextDisguise.Assemblies[assemblyIdentity] = assembly;
         }
 
 #if false

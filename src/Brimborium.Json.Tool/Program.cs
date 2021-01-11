@@ -37,15 +37,17 @@ namespace Brimborium.Json.Tool {
 
         public static async Task<int> Generate(string solution, string[] arrProject, IConsole console, CancellationToken cancellationToken) {
             /* do something */
-            WorkspaceUtility workspaceUtility = WorkspaceUtility.Create(null, null);
+            BuildUtility.InitLocator(null);
+            WorkspaceUtility workspaceUtility = WorkspaceUtility.Create( null);
             console.Out.WriteLine("Generate");
             console.Out.WriteLine($"Solution: {solution}");
+            var contextDisguise = new Brimborium.Disguise.ContextDisguise();
             if (!string.IsNullOrEmpty(solution)) { 
-                await workspaceUtility.OpenSolutionAsync(solution, cancellationToken);
+                await workspaceUtility.OpenSolutionAsync(solution, contextDisguise, cancellationToken);
             }
             foreach (var project in arrProject) {
                 console.Out.WriteLine($"Project: {project}");
-                await workspaceUtility.OpenProjectAsync(project, cancellationToken);
+                await workspaceUtility.OpenProjectAsync(project, contextDisguise, cancellationToken);
             }
             console.Out.WriteLine("-fini-");
             return 0;

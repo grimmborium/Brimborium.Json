@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Reflection;
 
 namespace Brimborium.Disguise.RunTime {
-    public class TypeInfoRTDisguise : TypeInfoDisguise {
+    public class TypeRTDisguise : TypeDisguise {
+        public static AssemblyIdentity GetTypeIdentity(Type type) => new AssemblyIdentity(type.GetTypeInfo().FullName);
+
         public readonly TypeInfo TypeInfo;
         private AssemblyDisguise? _Assembly;
 
-        public TypeInfoRTDisguise(Type type, ContextDisguise? contextDisguise)
+        public TypeRTDisguise(Type type, ContextDisguise? contextDisguise)
             : this(type.GetTypeInfo(), contextDisguise) {
         }
 
-        public TypeInfoRTDisguise(TypeInfo typeInfo, ContextDisguise? contextDisguise)
+        public TypeRTDisguise(TypeInfo typeInfo, ContextDisguise? contextDisguise)
             : base(contextDisguise) {
             this.TypeInfo = typeInfo;
             // this.TypeInfo.GetMembers

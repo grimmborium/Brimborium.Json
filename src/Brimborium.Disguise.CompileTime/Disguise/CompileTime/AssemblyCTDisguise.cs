@@ -50,9 +50,10 @@ namespace Brimborium.Disguise.CompileTime {
 
         private void InspectType(ITypeSymbol type) {
             // type.GetTypeMembers()
+            //TypeCTDisguise.
+            var typeInfo = new TypeCTDisguise(type, this.ContextDisguise);
+            this.ContextDisguise.Assemblies
             
-            new TypeInfoCTDisguise(type, this.ContextDisguise)
-            type.Name
         }
     }
 }

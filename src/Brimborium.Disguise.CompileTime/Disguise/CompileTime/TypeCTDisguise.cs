@@ -4,11 +4,12 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using System.Threading;
 
 namespace Brimborium.Disguise.CompileTime {
-    public class TypeInfoCTDisguise : TypeInfoDisguise {
+    public class TypeCTDisguise : TypeDisguise {
+        public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol) => new TypeIdentity(typeSymbol.Name);
         //private readonly TypeInfo _TypeInfo;
         public readonly ITypeSymbol TypeSymbol;
 
-        public TypeInfoCTDisguise(ITypeSymbol typeSymbol, ContextDisguise? contextDisguise)
+        public TypeCTDisguise(ITypeSymbol typeSymbol, ContextDisguise? contextDisguise)
             : base(contextDisguise) {
             this.TypeSymbol = typeSymbol;
         }
