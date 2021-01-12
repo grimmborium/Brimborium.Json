@@ -40,7 +40,7 @@ namespace Brimborium.Json {
                 switch (token) {
                     case JsonToken.Number:
                         var ns = this.ReadNumberSegment();
-                        actual = StringEncoding.UTF8.GetString(ns.Array, ns.Offset, ns.Count);
+                        actual = StringEncoding.UTF8NoBOM.GetString(ns.Array, ns.Offset, ns.Count);
                         break;
                     case JsonToken.String:
                         actual = "\"" + this.ReadString() + "\"";
@@ -564,8 +564,8 @@ namespace Brimborium.Json {
                                 builder = StringBuilderCache.GetBuffer();
                             }
 
-                            ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
-                            builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
+                            ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8NoBOM.GetMaxByteCount(codePointStringOffet));
+                            builderOffset += StringEncoding.UTF8NoBOM.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
                             codePointStringOffet = 0;
                         }
                         this.offset++;
@@ -579,8 +579,8 @@ namespace Brimborium.Json {
                     }
 
                     if (codePointStringOffet != 0) {
-                        ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
-                        builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
+                        ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8NoBOM.GetMaxByteCount(codePointStringOffet));
+                        builderOffset += StringEncoding.UTF8NoBOM.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
                         codePointStringOffet = 0;
                     }
 
@@ -612,8 +612,8 @@ namespace Brimborium.Json {
                 }
 
                 if (codePointStringOffet != 0) {
-                    ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8.GetMaxByteCount(codePointStringOffet));
-                    builderOffset += StringEncoding.UTF8.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
+                    ByteArrayUtil.EnsureCapacity(ref builder, builderOffset, StringEncoding.UTF8NoBOM.GetMaxByteCount(codePointStringOffet));
+                    builderOffset += StringEncoding.UTF8NoBOM.GetBytes(codePointStringBuffer, 0, codePointStringOffet, builder, builderOffset);
                     codePointStringOffet = 0;
                 }
 

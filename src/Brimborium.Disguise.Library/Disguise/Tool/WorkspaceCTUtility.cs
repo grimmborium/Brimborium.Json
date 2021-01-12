@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Brimborium.Disguise.CompileTime;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 using System;
@@ -7,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Brimborium.Disguise.CompileTime {
+namespace Brimborium.Disguise.Tool {
     public partial class WorkspaceCTUtility {
         public static WorkspaceCTUtility Create(Dictionary<string, string>? properties) {
             var result = new WorkspaceCTUtility(properties);
@@ -59,9 +61,11 @@ namespace Brimborium.Disguise.CompileTime {
             var topologicallySortedProjects = solution.GetProjectDependencyGraph().GetTopologicallySortedProjects();
             foreach (var projectId in topologicallySortedProjects) {
                 var project = solution.GetProject(projectId);
-                var projectUtility = new ProjectCTUtility(project);
-                this.Projects.Add(projectUtility);
-                await AddProjectAsync(projectUtility, contextDisguise, cancellationToken);
+                if (project is object) {
+                    var projectUtility = new ProjectCTUtility(project);
+                    this.Projects.Add(projectUtility);
+                    await AddProjectAsync(projectUtility, contextDisguise, cancellationToken);
+                }
             }
             return solution;
         }
@@ -125,7 +129,7 @@ namespace Brimborium.Disguise.CompileTime {
             foreach (var projectUtility in this.Projects) {
                 if (predicateProject is null || predicateProject(projectUtility)) {
                     var projects = await projectUtility.ProcessProjectAsync(
-                        predicateCompilation, 
+                        predicateCompilation,
                         contextDisguise,
                         process,
                         cancellationToken);

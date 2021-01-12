@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Brimborium.Disguise {
     public abstract class TypeDisguise
@@ -8,11 +9,11 @@ namespace Brimborium.Disguise {
             : base(contextDisguise) {
         }
         public abstract string Name { get; }
-        public abstract string Namespace { get; }
+        public abstract string? Namespace { get; }
         public abstract AssemblyDisguise Assembly { get; }
         public virtual TypeIdentity Identity => new TypeIdentity(
             $"{Namespace}.{Name}",
-            this.Name, 
+            this.Name,
             null,
             this.Namespace,
             this.Assembly.Identity);
@@ -24,7 +25,7 @@ namespace Brimborium.Disguise {
 
     public readonly struct TypeIdentity {
         public TypeIdentity(
-            string displayString, 
+            string displayString,
             string name,
             string? containingType,
             string? containingNamespace,
@@ -40,7 +41,7 @@ namespace Brimborium.Disguise {
         public string DisplayString { get; }
         public string Name { get; }
         public string? ContainingType { get; }
-        public string ContainingNamespace { get; }
+        public string? ContainingNamespace { get; }
         public AssemblyIdentity? AssemblyIdentity { get; }
     }
 
@@ -48,7 +49,7 @@ namespace Brimborium.Disguise {
         : IEqualityComparer<TypeIdentity> {
         public static readonly TypeIdentityEqualityComparer Instance = new TypeIdentityEqualityComparer();
 
-        public bool Equals(TypeIdentity x, TypeIdentity y) {
+        public bool Equals([AllowNull] TypeIdentity x, [AllowNull] TypeIdentity y) {
             if (ReferenceEquals(x.Name, y.Name)
                 && ReferenceEquals(x.ContainingNamespace, y.ContainingNamespace)
                 ) return true;
@@ -56,10 +57,12 @@ namespace Brimborium.Disguise {
                 && StringComparer.Ordinal.Equals(x.ContainingNamespace, y.ContainingNamespace);
         }
 
-        public int GetHashCode(TypeIdentity obj) {
-            unchecked { 
+        public int GetHashCode([DisallowNull] TypeIdentity obj) {
+            unchecked {
                 return StringComparer.Ordinal.GetHashCode(obj.Name)
-                    ^ StringComparer.Ordinal.GetHashCode(obj.ContainingNamespace)
+                    ^ ((obj.ContainingNamespace is object)
+                        ? StringComparer.Ordinal.GetHashCode(obj.ContainingNamespace)
+                        : 0)
                     ;
             }
         }

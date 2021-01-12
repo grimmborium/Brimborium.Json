@@ -109,7 +109,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateFalseExcludeNullFalseNameMutateCamelCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToCamelCase;
+        static readonly Func<string, string> nameMutator = StringMutator.CamelCase;
         static readonly bool excludeNull = false;
         const string ModuleName = "Brimborium.Json.Resolvers.DynamicObjectResolverAllowPrivateFalseExcludeNullFalseNameMutateCamelCase";
 
@@ -154,7 +154,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateFalseExcludeNullFalseNameMutateSnakeCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToSnakeCase;
+        static readonly Func<string, string> nameMutator = StringMutator.SnakeCase;
         static readonly bool excludeNull = false;
         const string ModuleName = "Brimborium.Json.Resolvers.DynamicObjectResolverAllowPrivateFalseExcludeNullFalseNameMutateSnakeCase";
 
@@ -244,7 +244,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateFalseExcludeNullTrueNameMutateCamelCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToCamelCase;
+        static readonly Func<string, string> nameMutator = StringMutator.CamelCase;
         static readonly bool excludeNull = true;
         const string ModuleName = "Brimborium.Json.Resolvers.DynamicObjectResolverAllowPrivateFalseExcludeNullTrueNameMutateCamelCase";
 
@@ -289,7 +289,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateFalseExcludeNullTrueNameMutateSnakeCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToSnakeCase;
+        static readonly Func<string, string> nameMutator = StringMutator.SnakeCase;
         static readonly bool excludeNull = true;
         const string ModuleName = "Brimborium.Json.Resolvers.DynamicObjectResolverAllowPrivateFalseExcludeNullTrueNameMutateSnakeCase";
 
@@ -358,7 +358,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateTrueExcludeNullFalseNameMutateCamelCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToCamelCase;
+        static readonly Func<string, string> nameMutator = StringMutator.CamelCase;
         static readonly bool excludeNull = false;
 
         public IJsonFormatter<T> GetFormatter<T>()
@@ -381,7 +381,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateTrueExcludeNullFalseNameMutateSnakeCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToSnakeCase;
+        static readonly Func<string, string> nameMutator = StringMutator.SnakeCase;
         static readonly bool excludeNull = false;
 
         public IJsonFormatter<T> GetFormatter<T>()
@@ -427,7 +427,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateTrueExcludeNullTrueNameMutateCamelCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToCamelCase;
+        static readonly Func<string, string> nameMutator = StringMutator.CamelCase;
         static readonly bool excludeNull = true;
 
         public IJsonFormatter<T> GetFormatter<T>()
@@ -450,7 +450,7 @@ namespace Brimborium.Json.Resolvers.Internal {
     {
         // configuration
         public static readonly IJsonFormatterResolver Instance = new DynamicObjectResolverAllowPrivateTrueExcludeNullTrueNameMutateSnakeCase();
-        static readonly Func<string, string> nameMutator = StringMutator.ToSnakeCase;
+        static readonly Func<string, string> nameMutator = StringMutator.SnakeCase;
         static readonly bool excludeNull = true;
 
         public IJsonFormatter<T> GetFormatter<T>()

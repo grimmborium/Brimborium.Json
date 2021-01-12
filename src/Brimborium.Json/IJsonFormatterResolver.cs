@@ -3,43 +3,44 @@
 using System;
 using System.Reflection;
 
-namespace Brimborium.Json
-{
-    public interface IJsonFormatterResolver
-    {
+namespace Brimborium.Json {
+    public interface IJsonFormatterResolver {
         IJsonFormatter<T> GetFormatter<T>();
     }
 
-    public static class JsonFormatterResolverExtensions
-    {
-        public static IJsonFormatter<T> GetFormatterWithVerify<T>(this IJsonFormatterResolver resolver)
-        {
+    public interface IJsonFormatterResolverCommon {
+        IJsonFormatter<T> GetFormatter<T>(JsonSerializationConfiguration configuration);
+    }
+    public interface IJsonFormatterResolverSpec {
+        IJsonFormatterSpecReader<T, TJsonReader> GetFormatterSpecReader<T, TJsonReader>(JsonSerializationConfiguration configuration)
+            where TJsonReader : JsonReader;
+
+        IJsonFormatterSpecWriter<T, TJsonWriter> GetFormatterSpecWriter<T, TJsonWriter>(JsonSerializationConfiguration configuration)
+            where TJsonWriter : JsonWriter;
+    }
+
+    public static class JsonFormatterResolverExtensions {
+        public static IJsonFormatter<T> GetFormatterWithVerify<T>(this IJsonFormatterResolver resolver) {
             IJsonFormatter<T> formatter;
-            try
-            {
+            try {
                 formatter = resolver.GetFormatter<T>();
-            }
-            catch (TypeInitializationException ex)
-            {
+            } catch (TypeInitializationException ex) {
                 Exception inner = ex;
-                while (inner.InnerException != null)
-                {
+                while (inner.InnerException != null) {
                     inner = inner.InnerException;
                 }
 
                 throw inner;
             }
 
-            if (formatter == null)
-            {
+            if (formatter == null) {
                 throw new FormatterNotRegisteredException(typeof(T).FullName + " is not registered in this resolver. resolver:" + resolver.GetType().Name);
             }
 
             return formatter;
         }
 
-        public static object GetFormatterDynamic(this IJsonFormatterResolver resolver, Type type)
-        {
+        public static object GetFormatterDynamic(this IJsonFormatterResolver resolver, Type type) {
             var methodInfo = typeof(IJsonFormatterResolver).GetRuntimeMethod("GetFormatter", Type.EmptyTypes);
 
             var formatter = methodInfo.MakeGenericMethod(type).Invoke(resolver, null);
@@ -47,10 +48,8 @@ namespace Brimborium.Json
         }
     }
 
-    public class FormatterNotRegisteredException : Exception
-    {
-        public FormatterNotRegisteredException(string message) : base(message)
-        {
+    public class FormatterNotRegisteredException : Exception {
+        public FormatterNotRegisteredException(string message) : base(message) {
         }
     }
 }

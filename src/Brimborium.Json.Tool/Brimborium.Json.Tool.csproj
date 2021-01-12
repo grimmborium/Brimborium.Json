@@ -23,9 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Brimborium.Disguise.CompileTime\Brimborium.Disguise.CompileTime.csproj" />
     <ProjectReference Include="..\Brimborium.Disguise.Library\Brimborium.Disguise.Library.csproj" />
-    <ProjectReference Include="..\Brimborium.Disguise.RunTime\Brimborium.Disguise.RunTime.csproj" />
     <ProjectReference Include="..\Brimborium.Disguise\Brimborium.Disguise.csproj" />
     <ProjectReference Include="..\Brimborium.Json\Brimborium.Json.csproj" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace Brimborium.Disguise.CompileTime {
+﻿namespace Brimborium.Disguise.Tool {
     public class BuildUtility {
         public static void InitLocator(string? msbuildPath) {
             try {

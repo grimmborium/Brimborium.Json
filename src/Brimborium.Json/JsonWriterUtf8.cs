@@ -13,32 +13,32 @@ namespace Brimborium.Json {
         public static byte[] GetEncodedPropertyName(string propertyName) {
             var writer = new JsonWriterUtf8(Array.Empty<byte>());
             writer.WritePropertyName(propertyName);
-            return writer.GetBufferAndDestroy();
+            return writer.GetBufferAndReset();
         }
 
         public static byte[] GetEncodedPropertyNameWithPrefixValueSeparator(string propertyName) {
             var writer = new JsonWriterUtf8(Array.Empty<byte>());
             writer.WriteValueSeparator();
             writer.WritePropertyName(propertyName);
-            return writer.GetBufferAndDestroy();
+            return writer.GetBufferAndReset();
         }
 
         public static byte[] GetEncodedPropertyNameWithBeginObject(string propertyName) {
             var writer = new JsonWriterUtf8(Array.Empty<byte>());
             writer.WriteBeginObject();
             writer.WritePropertyName(propertyName);
-            return writer.GetBufferAndDestroy();
+            return writer.GetBufferAndReset();
         }
 
         public static byte[] GetEncodedPropertyNameWithoutQuotation(string propertyName) {
             var writer = new JsonWriterUtf8(Array.Empty<byte>());
             writer.WriteString(propertyName); // "propname"
-            return writer.GetBufferAndDestroy();
+            return writer.GetBufferAndReset();
         }
 
-        private byte[] GetBufferAndDestroy() {
+        internal byte[] GetBufferAndReset() {
             byte[] result;
-            if (this.buffer.Length == this.offset) {
+            if (this.ownBuffer && this.buffer.Length == this.offset) {
                 result = this.buffer;
             } else {
                 result = this.ToUtf8ByteArray();
@@ -49,17 +49,15 @@ namespace Brimborium.Json {
 
         }
 
-        private bool _OwnBuffer;
+        internal bool ownBuffer;
 
-        // BufferPool.Default.Rent();
         // write direct from UnsafeMemory
         internal byte[] buffer;
-
         internal int offset;
 
         public override int CurrentOffset {
             get {
-                return offset;
+                return this.offset;
             }
         }
 
@@ -70,43 +68,48 @@ namespace Brimborium.Json {
         public JsonWriterUtf8() {
             this.buffer = Array.Empty<byte>();
             this.offset = 0;
-            this._OwnBuffer = false;
+            this.ownBuffer = false;
         }
 
         public JsonWriterUtf8(byte[]? initialBuffer) {
             this.offset = 0;
             if (initialBuffer is null) {
-                this._OwnBuffer = true;
+                this.ownBuffer = true;
                 this.buffer = Array.Empty<byte>();
             } else if (ReferenceEquals(initialBuffer, Array.Empty<byte>())) {
-                this._OwnBuffer = true;
+                this.ownBuffer = true;
                 this.buffer = initialBuffer;
             } else {
-                this._OwnBuffer = false;
+                this.ownBuffer = false;
                 this.buffer = initialBuffer;
             }
         }
 
         public override ArraySegment<byte> GetBuffer() {
-            if (buffer == null) return new ArraySegment<byte>(emptyBytes, 0, 0);
-            return new ArraySegment<byte>(buffer, 0, offset);
+            if (this.buffer == null) {
+                return new ArraySegment<byte>(emptyBytes, 0, 0);
+            }
+            return new ArraySegment<byte>(this.buffer, 0, this.offset);
         }
 
         public override byte[] ToUtf8ByteArray() {
-            if (buffer == null) {
+            if (this.buffer == null) {
                 return emptyBytes;
             }
-            return ByteArrayUtil.FastCloneWithResize(buffer, offset);
+            return ByteArrayUtil.FastCloneWithResize(this.buffer, this.offset);
         }
 
         public override string ToString() {
-            if (buffer == null) return string.Empty;
-            return Encoding.UTF8.GetString(buffer, 0, offset);
+            if (this.buffer == null) {
+                return string.Empty;
+            }
+
+            return Encoding.UTF8.GetString(this.buffer, 0, this.offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void EnsureCapacity(int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, appendLength);
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, appendLength);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -116,8 +119,8 @@ namespace Brimborium.Json {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> GetBuffer(int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, appendLength);
-            return new Span<byte>(this.buffer, offset, appendLength);
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, appendLength);
+            return new Span<byte>(this.buffer, this.offset, appendLength);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -128,8 +131,8 @@ namespace Brimborium.Json {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteRaw(byte rawValue) {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = rawValue;
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = rawValue;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -145,170 +148,170 @@ namespace Brimborium.Json {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteRawUnsafe(byte rawValue) {
-            buffer[offset++] = rawValue;
+            this.buffer[this.offset++] = rawValue;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteBeginArray() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)'[';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)'[';
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteEndArray() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)']';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)']';
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteBeginObject() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)'{';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)'{';
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteEndObject() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)'}';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)'}';
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteValueSeparator() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)',';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)',';
         }
 
         /// <summary>:</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteNameSeparator() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)':';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)':';
         }
 
         /// <summary>WriteString + WriteNameSeparator</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WritePropertyName(string propertyName) {
-            WriteString(propertyName);
-            WriteNameSeparator();
+            this.WriteString(propertyName);
+            this.WriteNameSeparator();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteQuotation() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1);
-            buffer[offset++] = (byte)'\"';
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 1);
+            this.buffer[this.offset++] = (byte)'\"';
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteNull() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 4);
-            buffer[offset + 0] = (byte)'n';
-            buffer[offset + 1] = (byte)'u';
-            buffer[offset + 2] = (byte)'l';
-            buffer[offset + 3] = (byte)'l';
-            offset += 4;
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 4);
+            this.buffer[this.offset + 0] = (byte)'n';
+            this.buffer[this.offset + 1] = (byte)'u';
+            this.buffer[this.offset + 2] = (byte)'l';
+            this.buffer[this.offset + 3] = (byte)'l';
+            this.offset += 4;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteBoolean(bool value) {
             if (value) {
-                ByteArrayUtil.EnsureCapacity(ref buffer, offset, 4);
-                buffer[offset + 0] = (byte)'t';
-                buffer[offset + 1] = (byte)'r';
-                buffer[offset + 2] = (byte)'u';
-                buffer[offset + 3] = (byte)'e';
-                offset += 4;
+                ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 4);
+                this.buffer[this.offset + 0] = (byte)'t';
+                this.buffer[this.offset + 1] = (byte)'r';
+                this.buffer[this.offset + 2] = (byte)'u';
+                this.buffer[this.offset + 3] = (byte)'e';
+                this.offset += 4;
             } else {
-                ByteArrayUtil.EnsureCapacity(ref buffer, offset, 5);
-                buffer[offset + 0] = (byte)'f';
-                buffer[offset + 1] = (byte)'a';
-                buffer[offset + 2] = (byte)'l';
-                buffer[offset + 3] = (byte)'s';
-                buffer[offset + 4] = (byte)'e';
-                offset += 5;
+                ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 5);
+                this.buffer[this.offset + 0] = (byte)'f';
+                this.buffer[this.offset + 1] = (byte)'a';
+                this.buffer[this.offset + 2] = (byte)'l';
+                this.buffer[this.offset + 3] = (byte)'s';
+                this.buffer[this.offset + 4] = (byte)'e';
+                this.offset += 5;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteTrue() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 4);
-            buffer[offset + 0] = (byte)'t';
-            buffer[offset + 1] = (byte)'r';
-            buffer[offset + 2] = (byte)'u';
-            buffer[offset + 3] = (byte)'e';
-            offset += 4;
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 4);
+            this.buffer[this.offset + 0] = (byte)'t';
+            this.buffer[this.offset + 1] = (byte)'r';
+            this.buffer[this.offset + 2] = (byte)'u';
+            this.buffer[this.offset + 3] = (byte)'e';
+            this.offset += 4;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteFalse() {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, 5);
-            buffer[offset + 0] = (byte)'f';
-            buffer[offset + 1] = (byte)'a';
-            buffer[offset + 2] = (byte)'l';
-            buffer[offset + 3] = (byte)'s';
-            buffer[offset + 4] = (byte)'e';
-            offset += 5;
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, 5);
+            this.buffer[this.offset + 0] = (byte)'f';
+            this.buffer[this.offset + 1] = (byte)'a';
+            this.buffer[this.offset + 2] = (byte)'l';
+            this.buffer[this.offset + 3] = (byte)'s';
+            this.buffer[this.offset + 4] = (byte)'e';
+            this.offset += 5;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteSingle(Single value) {
-            offset += Brimborium.Json.Internal.DoubleConversion.DoubleToStringConverter.GetBytes(ref buffer, offset, value);
+            this.offset += Brimborium.Json.Internal.DoubleConversion.DoubleToStringConverter.GetBytes(ref this.buffer, this.offset, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteDouble(double value) {
-            offset += Brimborium.Json.Internal.DoubleConversion.DoubleToStringConverter.GetBytes(ref buffer, offset, value);
+            this.offset += Brimborium.Json.Internal.DoubleConversion.DoubleToStringConverter.GetBytes(ref this.buffer, this.offset, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteByte(byte value) {
-            WriteUInt64((ulong)value);
+            this.WriteUInt64((ulong)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteUInt16(ushort value) {
-            WriteUInt64((ulong)value);
+            this.WriteUInt64((ulong)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteUInt32(uint value) {
-            WriteUInt64((ulong)value);
+            this.WriteUInt64((ulong)value);
         }
 
         public override void WriteUInt64(ulong value) {
-            offset += NumberConverter.WriteUInt64(ref buffer, offset, value);
+            this.offset += NumberConverter.WriteUInt64(ref this.buffer, this.offset, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteSByte(sbyte value) {
-            WriteInt64((long)value);
+            this.WriteInt64((long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteInt16(short value) {
-            WriteInt64((long)value);
+            this.WriteInt64((long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteInt32(int value) {
-            WriteInt64((long)value);
+            this.WriteInt64((long)value);
         }
 
         public override void WriteInt64(long value) {
-            offset += NumberConverter.WriteInt64(ref buffer, offset, value);
+            this.offset += NumberConverter.WriteInt64(ref this.buffer, this.offset, value);
         }
 
         public override void WriteString(string? value) {
             if (value == null) {
-                WriteNull();
+                this.WriteNull();
                 return;
             }
 
             var max = Utils.GetUtf8ByteCountForStringToEncode(value) + 2;
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, max);
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, max);
 
             // nonescaped-ensure
-            var startoffset = offset;
-            buffer[offset++] = (byte)'\"';
+            var startoffset = this.offset;
+            this.buffer[this.offset++] = (byte)'\"';
 
             var from = 0;
             // for JIT Optimization, for-loop i < str.Length
@@ -428,32 +431,32 @@ namespace Brimborium.Json {
                 }
 
                 max += 2;
-                ByteArrayUtil.EnsureCapacity(ref buffer, startoffset, max); // check +escape capacity
+                ByteArrayUtil.EnsureCapacity(ref this.buffer, startoffset, max); // check +escape capacity
 
-                offset += StringEncoding.UTF8.GetBytes(value, from, i - from, buffer, offset);
+                this.offset += StringEncoding.UTF8NoBOM.GetBytes(value, from, i - from, this.buffer, this.offset);
                 from = i + 1;
-                buffer[offset++] = (byte)'\\';
-                buffer[offset++] = escapeChar;
+                this.buffer[this.offset++] = (byte)'\\';
+                this.buffer[this.offset++] = escapeChar;
             }
 
             if (from != value.Length) {
-                offset += StringEncoding.UTF8.GetBytes(value, from, value.Length - from, buffer, offset);
+                this.offset += StringEncoding.UTF8NoBOM.GetBytes(value, from, value.Length - from, this.buffer, this.offset);
             }
 
-            buffer[offset++] = (byte)'\"';
+            this.buffer[this.offset++] = (byte)'\"';
         }
 
         public override void WriteStringWithoutQuotation(string value) {
             if (value == null) {
-                WriteNull();
+                this.WriteNull();
                 return;
             }
 
             var max = Utils.GetUtf8ByteCountForStringToEncode(value);
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, max);
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, max);
 
             // nonescaped-ensure
-            var startoffset = offset;
+            var startoffset = this.offset;
 
             var from = 0;
             // for JIT Optimization, for-loop i < str.Length
@@ -573,16 +576,16 @@ namespace Brimborium.Json {
                 }
 
                 max += 1;
-                ByteArrayUtil.EnsureCapacity(ref buffer, startoffset, max); // check +escape capacity
+                ByteArrayUtil.EnsureCapacity(ref this.buffer, startoffset, max); // check +escape capacity
 
-                offset += StringEncoding.UTF8.GetBytes(value, from, i - from, buffer, offset);
+                this.offset += StringEncoding.UTF8NoBOM.GetBytes(value, from, i - from, this.buffer, this.offset);
                 from = i + 1;
-                buffer[offset++] = (byte)'\\';
-                buffer[offset++] = escapeChar;
+                this.buffer[this.offset++] = (byte)'\\';
+                this.buffer[this.offset++] = escapeChar;
             }
 
             if (from != value.Length) {
-                offset += StringEncoding.UTF8.GetBytes(value, from, value.Length - from, buffer, offset);
+                this.offset += StringEncoding.UTF8NoBOM.GetBytes(value, from, value.Length - from, this.buffer, this.offset);
             }
         }
 
@@ -596,7 +599,7 @@ namespace Brimborium.Json {
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int GetUtf8ByteCountForStringToEncode(string value) {
-                var max = StringEncoding.UTF8.GetByteCount(value);
+                var max = StringEncoding.UTF8NoBOM.GetByteCount(value);
 
                 for (int i = 0; i < value.Length; i++) {
                     switch (value[i]) {

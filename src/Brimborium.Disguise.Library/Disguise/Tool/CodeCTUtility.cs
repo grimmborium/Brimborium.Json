@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.CodeAnalysis;
 
-namespace Brimborium.Disguise.CompileTime {
+namespace Brimborium.Disguise.Tool {
     public partial class WorkspaceCTUtility {
         public class CodeUtility {
             public readonly ProjectCTUtility ProjectUtility;

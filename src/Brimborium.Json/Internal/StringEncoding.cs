@@ -2,8 +2,8 @@
 
 namespace Brimborium.Json.Internal
 {
-    internal static class StringEncoding
+    public static class StringEncoding
     {
-        public static readonly Encoding UTF8 = new UTF8Encoding(false);
+        public static readonly Encoding UTF8NoBOM = new UTF8Encoding(false);
     }
 }

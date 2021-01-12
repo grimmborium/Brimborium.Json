@@ -56,12 +56,14 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
-
+  <!--
+  C:\github\grimmborium\Brimborium.Json\src\Brimborium.Json\Internal\UnsafeMemory.tt
+  -->
   <ItemGroup>
-    <ProjectReference Include="..\Brimborium.Disguise\Brimborium.Disguise.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="Internal\UnsafeMemory.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>UnsafeMemory.cs</LastGenOutput>
+    </None>
     <None Update="Formatters\PrimitiveFormatter.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveFormatter.cs</LastGenOutput>
@@ -82,6 +84,14 @@
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Internal\UnsafeMemory.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UnsafeMemory.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

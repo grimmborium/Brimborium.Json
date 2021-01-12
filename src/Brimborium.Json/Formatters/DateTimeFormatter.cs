@@ -347,7 +347,7 @@ namespace Brimborium.Json.Formatters {
             return new DateTime(year, month, day, hour, minute, second, kind).AddTicks(ticks);
 
         ERROR:
-            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8.GetString(str.Array, str.Offset, str.Count));
+            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8NoBOM.GetString(str.Array, str.Offset, str.Count));
         }
     }
 
@@ -643,7 +643,7 @@ namespace Brimborium.Json.Formatters {
             return new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero).AddTicks(ticks);
 
         ERROR:
-            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8.GetString(str.Array, str.Offset, str.Count));
+            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8NoBOM.GetString(str.Array, str.Offset, str.Count));
         }
     }
 
@@ -711,7 +711,7 @@ namespace Brimborium.Json.Formatters {
     public sealed class ISO8601TimeSpanFormatter : IJsonFormatter<TimeSpan> {
         public static readonly IJsonFormatter<TimeSpan> Default = new ISO8601TimeSpanFormatter();
 
-        static byte[] minValue = StringEncoding.UTF8.GetBytes("\"" + TimeSpan.MinValue.ToString() + "\"");
+        static byte[] minValue = StringEncoding.UTF8NoBOM.GetBytes("\"" + TimeSpan.MinValue.ToString() + "\"");
 
         public void Serialize(JsonWriter writer, TimeSpan value, IJsonFormatterResolver formatterResolver) {
             // can not negate, use cache
@@ -873,7 +873,7 @@ namespace Brimborium.Json.Formatters {
                 : ts.Add(tk);
 
         ERROR:
-            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8.GetString(str.Array, str.Offset, str.Count));
+            throw new InvalidOperationException("invalid datetime format. value:" + StringEncoding.UTF8NoBOM.GetString(str.Array, str.Offset, str.Count));
         }
     }
 }

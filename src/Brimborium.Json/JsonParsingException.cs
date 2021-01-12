@@ -43,7 +43,7 @@ namespace Brimborium.Json {
             var bytes = underyingBytes.Target as byte[];
             if (bytes != null)
             {
-                return StringEncoding.UTF8.GetString(bytes, 0, limit) + "...";
+                return StringEncoding.UTF8NoBOM.GetString(bytes, 0, limit) + "...";
             }
             return null;
         }

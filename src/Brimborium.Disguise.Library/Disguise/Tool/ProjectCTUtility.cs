@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Brimborium.Disguise.CompileTime;
+
 using Microsoft.CodeAnalysis;
 
-namespace Brimborium.Disguise.CompileTime {
+namespace Brimborium.Disguise.Tool {
     public partial class WorkspaceCTUtility {
         public class ProjectCTUtility {
             public readonly Project Project;
             public readonly AssemblyIdentity AssemblyIdentity;
             public readonly List<CodeUtility> SemanticModels;
 
-            public AssemblyCTDisguise Assembly { get; internal set; }
+            public AssemblyCTDisguise? Assembly { get; set; }
             public Compilation? Compilation { get; set; }
 
             public ProjectCTUtility(Project project) {

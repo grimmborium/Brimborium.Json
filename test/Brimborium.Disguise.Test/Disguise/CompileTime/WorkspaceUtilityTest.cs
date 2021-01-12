@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Brimborium.Disguise.Tool;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;

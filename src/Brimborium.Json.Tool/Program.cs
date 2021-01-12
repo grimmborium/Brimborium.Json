@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Brimborium.Disguise;
 using Brimborium.Disguise.CompileTime;
+using Brimborium.Disguise.Tool;
 
 namespace Brimborium.Json.Tool {
     class Program {

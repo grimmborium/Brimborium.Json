@@ -251,7 +251,7 @@ namespace Brimborium.Json.Formatters
                 T value;
                 if (!nameValueMapping.TryGetValue(key, out value))
                 {
-                    var str = StringEncoding.UTF8.GetString(key.Array, key.Offset, key.Count);
+                    var str = StringEncoding.UTF8NoBOM.GetString(key.Array, key.Offset, key.Count);
                     value = (T)Enum.Parse(typeof(T), str); // Enum.Parse is slow
                 }
                 return value;

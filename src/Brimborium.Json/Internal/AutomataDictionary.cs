@@ -36,7 +36,7 @@ namespace Brimborium.Json.Internal {
                     var key = AutomataKeyGen.GetKey(ref p, ref rest);
 
                     if (rest == 0) {
-                        node = node.Add(key, value, StringEncoding.UTF8.GetString(bytes));
+                        node = node.Add(key, value, StringEncoding.UTF8NoBOM.GetString(bytes));
                     } else {
                         node = node.Add(key);
                     }

@@ -10,6 +10,8 @@ namespace Brimborium.Json.Internal
         public static unsafe void MemoryCopy(JsonWriter writer, byte[] src) {
             if (writer is JsonWriterUtf8 jsonWriterUtf8) {
                 MemoryCopyUtf8(jsonWriterUtf8, src);
+            } else {
+                throw new NotImplementedException();
             }
         }
     }
@@ -63,7 +65,7 @@ namespace Brimborium.Json.Internal
 
         public static unsafe void MemoryCopyUtf8(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 #if !NET45
             fixed (void* dstP = &writer.buffer[writer.offset])
             fixed (void* srcP = &src[0])
@@ -82,7 +84,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw1(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -96,7 +98,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw2(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -110,7 +112,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw3(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -128,7 +130,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw1(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -142,7 +144,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw2(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -156,7 +158,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw3(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -171,7 +173,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw4(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -185,7 +187,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw5(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -200,7 +202,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw6(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])
@@ -215,7 +217,7 @@ namespace Brimborium.Json.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void WriteRaw7(JsonWriterUtf8 writer, byte[] src)
         {
-            writer.EnsureCapacity(writer.offset, src.Length);
+            writer.EnsureCapacity(src.Length);
 
             fixed (byte* pSrc = &src[0])
             fixed (byte* pDst = &writer.buffer[writer.offset])

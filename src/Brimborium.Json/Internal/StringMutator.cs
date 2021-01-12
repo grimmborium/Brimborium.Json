@@ -1,25 +1,20 @@
 ﻿using System;
 using System.Text;
 
-namespace Brimborium.Json.Internal
-{
-    internal static class StringMutator
-    {
+namespace Brimborium.Json.Internal {
+    public static class StringMutator {
         /// <summary>
         /// MyProperty -> MyProperty
         /// </summary>
-        public static string Original(string s)
-        {
+        public static string Original(string s) {
             return s;
         }
 
         /// <summary>
         /// MyProperty -> myProperty
         /// </summary>
-        public static string ToCamelCase(string s)
-        {
-            if (string.IsNullOrEmpty(s) || char.IsLower(s, 0))
-            {
+        public static string CamelCase(string s) {
+            if (string.IsNullOrEmpty(s) || char.IsLower(s, 0)) {
                 return s;
             }
 
@@ -31,34 +26,27 @@ namespace Brimborium.Json.Internal
         /// <summary>
         /// MyProperty -> my_property
         /// </summary>
-        public static string ToSnakeCase(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return s;
+        public static string SnakeCase(string s) {
+            if (string.IsNullOrEmpty(s)) {
+                return s;
+            }
 
             var sb = new StringBuilder();
-            for (int i = 0; i < s.Length; i++)
-            {
+            for (int i = 0; i < s.Length; i++) {
                 var c = s[i];
 
-                if (Char.IsUpper(c))
-                {
+                if (Char.IsUpper(c)) {
                     // first
-                    if (i == 0)
-                    {
+                    if (i == 0) {
                         sb.Append(char.ToLowerInvariant(c));
-                    }
-                    else if (char.IsUpper(s[i - 1])) // WriteIO => write_io
-                    {
+                    } else if (char.IsUpper(s[i - 1])) // WriteIO => write_io
+                      {
                         sb.Append(char.ToLowerInvariant(c));
-                    }
-                    else
-                    {
+                    } else {
                         sb.Append("_");
                         sb.Append(char.ToLowerInvariant(c));
                     }
-                }
-                else
-                {
+                } else {
                     sb.Append(c);
                 }
             }

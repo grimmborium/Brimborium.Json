@@ -49,9 +49,7 @@
   -->
   
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Brimborium.Disguise.CompileTime\Brimborium.Disguise.CompileTime.csproj" />
     <ProjectReference Include="..\..\src\Brimborium.Disguise.Library\Brimborium.Disguise.Library.csproj" />
-    <ProjectReference Include="..\..\src\Brimborium.Disguise.RunTime\Brimborium.Disguise.RunTime.csproj" />
     <ProjectReference Include="..\..\src\Brimborium.Disguise\Brimborium.Disguise.csproj" />
   </ItemGroup>
 

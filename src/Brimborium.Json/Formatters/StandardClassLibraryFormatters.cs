@@ -314,7 +314,7 @@ namespace Brimborium.Json.Formatters
                 writer.WriteString(value.ToString(CultureInfo.InvariantCulture));
             } else {
                 // write as number format.
-                writer.WriteRaw(StringEncoding.UTF8.GetBytes(value.ToString(CultureInfo.InvariantCulture)));
+                writer.WriteRaw(StringEncoding.UTF8NoBOM.GetBytes(value.ToString(CultureInfo.InvariantCulture)));
             }
         }
 
@@ -322,7 +322,7 @@ namespace Brimborium.Json.Formatters
             var token = reader.GetCurrentJsonToken();
             if (token == JsonToken.Number) {
                 var number = reader.ReadNumberSegment();
-                return decimal.Parse(StringEncoding.UTF8.GetString(number.Array, number.Offset, number.Count), NumberStyles.Float, CultureInfo.InvariantCulture);
+                return decimal.Parse(StringEncoding.UTF8NoBOM.GetString(number.Array, number.Offset, number.Count), NumberStyles.Float, CultureInfo.InvariantCulture);
             } else if (token == JsonToken.String) {
                 return decimal.Parse(reader.ReadString(), NumberStyles.Float, CultureInfo.InvariantCulture);
             } else {

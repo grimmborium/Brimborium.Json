@@ -68,8 +68,8 @@ namespace Brimborium.Json.Internal.DoubleConversion
 
         public void AddStringSlow(string str)
         {
-            ByteArrayUtil.EnsureCapacity(ref buffer, offset, StringEncoding.UTF8.GetMaxByteCount(str.Length));
-            offset += StringEncoding.UTF8.GetBytes(str, 0, str.Length, buffer, offset);
+            ByteArrayUtil.EnsureCapacity(ref buffer, offset, StringEncoding.UTF8NoBOM.GetMaxByteCount(str.Length));
+            offset += StringEncoding.UTF8NoBOM.GetBytes(str, 0, str.Length, buffer, offset);
         }
     }
 
@@ -174,8 +174,8 @@ namespace Brimborium.Json.Internal.DoubleConversion
         };
 
         // C# constants
-        static readonly byte[] infinity_symbol_ = StringEncoding.UTF8.GetBytes(double.PositiveInfinity.ToString());
-        static readonly byte[] nan_symbol_ = StringEncoding.UTF8.GetBytes(double.NaN.ToString());
+        static readonly byte[] infinity_symbol_ = StringEncoding.UTF8NoBOM.GetBytes(double.PositiveInfinity.ToString());
+        static readonly byte[] nan_symbol_ = StringEncoding.UTF8NoBOM.GetBytes(double.NaN.ToString());
 
         // constructor parameter, same as EcmaScriptConverter
         //DoubleToStringConverter(int flags,

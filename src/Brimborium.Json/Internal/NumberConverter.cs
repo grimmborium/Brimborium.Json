@@ -7,30 +7,25 @@ using Brimborium.Json.Internal.DoubleConversion;
 using System.Runtime.CompilerServices;
 #endif
 
-namespace Brimborium.Json.Internal
-{
+namespace Brimborium.Json.Internal {
     /// <summary>
     /// zero-allocate itoa, dtoa, atoi, atod converters.
     /// </summary>
-    public static class NumberConverter
-    {
+    public static class NumberConverter {
         /// <summary>
         /// 0 ~ 9
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNumber(byte c)
-        {
-            return (byte)'0' <= c && c <= (byte)'9';
+        public static bool IsNumber(byte c) {
+            return ((byte)'0' <= c && c <= (byte)'9') ? true : false;
         }
 
         /// <summary>
         /// Is 0 ~ 9, '.', '+', '-'?
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNumberRepresentation(byte c)
-        {
-            switch (c)
-            {
+        public static bool IsNumberRepresentation(byte c) {
+            switch (c) {
                 case 43: // +
                 case 45: // -
                 case 46: // .
@@ -53,38 +48,31 @@ namespace Brimborium.Json.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static sbyte ReadSByte(byte[] bytes, int offset, out int readCount)
-        {
+        public static sbyte ReadSByte(byte[] bytes, int offset, out int readCount) {
             return checked((sbyte)ReadInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static short ReadInt16(byte[] bytes, int offset, out int readCount)
-        {
+        public static short ReadInt16(byte[] bytes, int offset, out int readCount) {
             return checked((short)ReadInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadInt32(byte[] bytes, int offset, out int readCount)
-        {
+        public static int ReadInt32(byte[] bytes, int offset, out int readCount) {
             return checked((int)ReadInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ReadInt64(byte[] bytes, int offset, out int readCount)
-        {
+        public static long ReadInt64(byte[] bytes, int offset, out int readCount) {
             var value = 0L;
             var sign = 1;
 
-            if (bytes[offset] == '-')
-            {
+            if (bytes[offset] == '-') {
                 sign = -1;
             }
 
-            for (int i = ((sign == -1) ? offset + 1 : offset); i < bytes.Length; i++)
-            {
-                if (!IsNumber(bytes[i]))
-                {
+            for (int i = ((sign == -1) ? offset + 1 : offset); i < bytes.Length; i++) {
+                if (!IsNumber(bytes[i])) {
                     readCount = i - offset;
                     goto END;
                 }
@@ -99,32 +87,26 @@ namespace Brimborium.Json.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte ReadByte(byte[] bytes, int offset, out int readCount)
-        {
+        public static byte ReadByte(byte[] bytes, int offset, out int readCount) {
             return checked((byte)ReadUInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ushort ReadUInt16(byte[] bytes, int offset, out int readCount)
-        {
+        public static ushort ReadUInt16(byte[] bytes, int offset, out int readCount) {
             return checked((ushort)ReadUInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint ReadUInt32(byte[] bytes, int offset, out int readCount)
-        {
+        public static uint ReadUInt32(byte[] bytes, int offset, out int readCount) {
             return checked((uint)ReadUInt64(bytes, offset, out readCount));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong ReadUInt64(byte[] bytes, int offset, out int readCount)
-        {
+        public static ulong ReadUInt64(byte[] bytes, int offset, out int readCount) {
             var value = 0UL;
 
-            for (int i = offset; i < bytes.Length; i++)
-            {
-                if (!IsNumber(bytes[i]))
-                {
+            for (int i = offset; i < bytes.Length; i++) {
+                if (!IsNumber(bytes[i])) {
                     readCount = i - offset;
                     goto END;
                 }
@@ -138,88 +120,69 @@ namespace Brimborium.Json.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ReadSingle(byte[] bytes, int offset, out int readCount)
-        {
+        public static float ReadSingle(byte[] bytes, int offset, out int readCount) {
             return StringToDoubleConverter.ToSingle(bytes, offset, out readCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double ReadDouble(byte[] bytes, int offset, out int readCount)
-        {
+        public static double ReadDouble(byte[] bytes, int offset, out int readCount) {
             return StringToDoubleConverter.ToDouble(bytes, offset, out readCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteByte(ref byte[] buffer, int offset, byte value)
-        {
+        public static int WriteByte(ref byte[] buffer, int offset, byte value) {
             return WriteUInt64(ref buffer, offset, (ulong)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt16(ref byte[] buffer, int offset, ushort value)
-        {
+        public static int WriteUInt16(ref byte[] buffer, int offset, ushort value) {
             return WriteUInt64(ref buffer, offset, (ulong)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt32(ref byte[] buffer, int offset, uint value)
-        {
+        public static int WriteUInt32(ref byte[] buffer, int offset, uint value) {
             return WriteUInt64(ref buffer, offset, (ulong)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteUInt64(ref byte[] buffer, int offset, ulong value)
-        {
+        public static int WriteUInt64(ref byte[] buffer, int offset, ulong value) {
             var startOffset = offset;
 
             ulong num1 = value, num2, num3, num4, num5, div;
 
-            if (num1 < 10000)
-            {
+            if (num1 < 10000) {
                 if (num1 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1); goto L1; }
                 if (num1 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 2); goto L2; }
                 if (num1 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 3); goto L3; }
                 ByteArrayUtil.EnsureCapacity(ref buffer, offset, 4); goto L4;
-            }
-            else
-            {
+            } else {
                 num2 = num1 / 10000;
                 num1 -= num2 * 10000;
-                if (num2 < 10000)
-                {
+                if (num2 < 10000) {
                     if (num2 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 5); goto L5; }
                     if (num2 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 6); goto L6; }
                     if (num2 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 7); goto L7; }
                     ByteArrayUtil.EnsureCapacity(ref buffer, offset, 8); goto L8;
-                }
-                else
-                {
+                } else {
                     num3 = num2 / 10000;
                     num2 -= num3 * 10000;
-                    if (num3 < 10000)
-                    {
+                    if (num3 < 10000) {
                         if (num3 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 9); goto L9; }
                         if (num3 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 10); goto L10; }
                         if (num3 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 11); goto L11; }
                         ByteArrayUtil.EnsureCapacity(ref buffer, offset, 12); goto L12;
-                    }
-                    else
-                    {
+                    } else {
                         num4 = num3 / 10000;
                         num3 -= num4 * 10000;
-                        if (num4 < 10000)
-                        {
+                        if (num4 < 10000) {
                             if (num4 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 13); goto L13; }
                             if (num4 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 14); goto L14; }
                             if (num4 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 15); goto L15; }
                             ByteArrayUtil.EnsureCapacity(ref buffer, offset, 16); goto L16;
-                        }
-                        else
-                        {
+                        } else {
                             num5 = num4 / 10000;
                             num4 -= num5 * 10000;
-                            if (num5 < 10000)
-                            {
+                            if (num5 < 10000) {
                                 if (num5 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 17); goto L17; }
                                 if (num5 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 18); goto L18; }
                                 if (num5 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 19); goto L19; }
@@ -289,33 +252,28 @@ namespace Brimborium.Json.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteSByte(ref byte[] buffer, int offset, sbyte value)
-        {
+        public static int WriteSByte(ref byte[] buffer, int offset, sbyte value) {
             return WriteInt64(ref buffer, offset, (long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static int WriteInt16(ref byte[] buffer, int offset, short value)
-        {
+        public static int WriteInt16(ref byte[] buffer, int offset, short value) {
             return WriteInt64(ref buffer, offset, (long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt32(ref byte[] buffer, int offset, int value)
-        {
+        public static int WriteInt32(ref byte[] buffer, int offset, int value) {
             return WriteInt64(ref buffer, offset, (long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteInt64(ref byte[] buffer, int offset, long value)
-        {
+        public static int WriteInt64(ref byte[] buffer, int offset, long value) {
             var startOffset = offset;
 
             long num1 = value, num2, num3, num4, num5, div;
 
-            if (value < 0)
-            {
+            if (value < 0) {
                 if (value == long.MinValue) // -9223372036854775808
                 {
                     ByteArrayUtil.EnsureCapacity(ref buffer, offset, 20);
@@ -349,52 +307,39 @@ namespace Brimborium.Json.Internal
 
             // WriteUInt64(inlined)
 
-            if (num1 < 10000)
-            {
+            if (num1 < 10000) {
                 if (num1 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 1); goto L1; }
                 if (num1 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 2); goto L2; }
                 if (num1 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 3); goto L3; }
                 ByteArrayUtil.EnsureCapacity(ref buffer, offset, 4); goto L4;
-            }
-            else
-            {
+            } else {
                 num2 = num1 / 10000;
                 num1 -= num2 * 10000;
-                if (num2 < 10000)
-                {
+                if (num2 < 10000) {
                     if (num2 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 5); goto L5; }
                     if (num2 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 6); goto L6; }
                     if (num2 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 7); goto L7; }
                     ByteArrayUtil.EnsureCapacity(ref buffer, offset, 8); goto L8;
-                }
-                else
-                {
+                } else {
                     num3 = num2 / 10000;
                     num2 -= num3 * 10000;
-                    if (num3 < 10000)
-                    {
+                    if (num3 < 10000) {
                         if (num3 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 9); goto L9; }
                         if (num3 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 10); goto L10; }
                         if (num3 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 11); goto L11; }
                         ByteArrayUtil.EnsureCapacity(ref buffer, offset, 12); goto L12;
-                    }
-                    else
-                    {
+                    } else {
                         num4 = num3 / 10000;
                         num3 -= num4 * 10000;
-                        if (num4 < 10000)
-                        {
+                        if (num4 < 10000) {
                             if (num4 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 13); goto L13; }
                             if (num4 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 14); goto L14; }
                             if (num4 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 15); goto L15; }
                             ByteArrayUtil.EnsureCapacity(ref buffer, offset, 16); goto L16;
-                        }
-                        else
-                        {
+                        } else {
                             num5 = num4 / 10000;
                             num4 -= num5 * 10000;
-                            if (num5 < 10000)
-                            {
+                            if (num5 < 10000) {
                                 if (num5 < 10) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 17); goto L17; }
                                 if (num5 < 100) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 18); goto L18; }
                                 if (num5 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 19); goto L19; }
@@ -464,41 +409,33 @@ namespace Brimborium.Json.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteSingle(ref byte[] bytes, int offset, float value)
-        {
+        public static int WriteSingle(ref byte[] bytes, int offset, float value) {
             return DoubleToStringConverter.GetBytes(ref bytes, offset, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int WriteDouble(ref byte[] bytes, int offset, double value)
-        {
+        public static int WriteDouble(ref byte[] bytes, int offset, double value) {
             return DoubleToStringConverter.GetBytes(ref bytes, offset, value);
         }
 
         // boolean is not number:)
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ReadBoolean(byte[] bytes, int offset, out int readCount)
-        {
-            if (bytes[offset] == 't')
-            {
+        public static bool ReadBoolean(byte[] bytes, int offset, out int readCount) {
+            if (bytes[offset] == 't') {
                 if (bytes[offset + 1] != 'r') goto ERROR_TRUE;
                 if (bytes[offset + 2] != 'u') goto ERROR_TRUE;
                 if (bytes[offset + 3] != 'e') goto ERROR_TRUE;
                 readCount = 4;
                 return true;
-            }
-            else if (bytes[offset] == 'f')
-            {
+            } else if (bytes[offset] == 'f') {
                 if (bytes[offset + 1] != 'a') goto ERROR_FALSE;
                 if (bytes[offset + 2] != 'l') goto ERROR_FALSE;
                 if (bytes[offset + 3] != 's') goto ERROR_FALSE;
                 if (bytes[offset + 4] != 'e') goto ERROR_FALSE;
                 readCount = 5;
                 return false;
-            }
-            else
-            {
+            } else {
                 throw new InvalidOperationException("value is not boolean.");
             }
 
