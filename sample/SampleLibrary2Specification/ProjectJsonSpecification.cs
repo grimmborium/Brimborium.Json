@@ -9,9 +9,9 @@ namespace SampleLibrary2 {
 
         public JsonSpecification GetSpecification() {
             var result = this.CreateProjectSpecification();
-            result.AddType<Person>(t=> {
-                    t.AddAllProperties();
-                });
+            result.AddType<Person>(t => {
+                t.AddAllProperties();
+            });
             return result;
         }
     }

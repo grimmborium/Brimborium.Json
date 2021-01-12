@@ -9,13 +9,13 @@ namespace Brimborium.Disguise.RunTime {
         public void TypeInfoRTDisguise_Name1()
         {
             var contextDisguise = new ContextDisguise();
-            var sut = new TypeInfoRTDisguise(typeof(Hugo.Gna), contextDisguise);
+            var sut = new TypeRTDisguise(typeof(Hugo.Gna), contextDisguise);
             Assert.Equal("Gna", sut.Name);
         }
 
         [Fact]
         public void TypeInfoRTDisguise_Name2() {
-            var sut = new TypeInfoRTDisguise(typeof(Hugo.Gna), null);
+            var sut = new TypeRTDisguise(typeof(Hugo.Gna), null);
             Assert.Equal("Gna", sut.Name);
         }
     }

@@ -10,16 +10,38 @@ namespace Brimborium.Disguise {
         public abstract string Name { get; }
         public abstract string Namespace { get; }
         public abstract AssemblyDisguise Assembly { get; }
-        public virtual TypeIdentity Identity => new TypeIdentity(this.Name, this.Namespace);
+        public virtual TypeIdentity Identity => new TypeIdentity(
+            $"{Namespace}.{Name}",
+            this.Name, 
+            null,
+            this.Namespace,
+            this.Assembly.Identity);
+        public virtual bool IsArray => false;
+        public virtual bool IsClass => false;
+        public virtual bool IsValueType => false;
+        //public virtual bool IsClass => false;
     }
 
     public readonly struct TypeIdentity {
-        public TypeIdentity(string name, string @namespace) {
+        public TypeIdentity(
+            string displayString, 
+            string name,
+            string? containingType,
+            string? containingNamespace,
+            AssemblyIdentity? assemblyIdentity
+            ) {
+            DisplayString = displayString;
             Name = name;
-            Namespace = @namespace;
+            ContainingType = containingType;
+            ContainingNamespace = containingNamespace;
+            AssemblyIdentity = assemblyIdentity;
         }
+
+        public string DisplayString { get; }
         public string Name { get; }
-        public string Namespace { get; }
+        public string? ContainingType { get; }
+        public string ContainingNamespace { get; }
+        public AssemblyIdentity? AssemblyIdentity { get; }
     }
 
     public sealed class TypeIdentityEqualityComparer
@@ -28,16 +50,16 @@ namespace Brimborium.Disguise {
 
         public bool Equals(TypeIdentity x, TypeIdentity y) {
             if (ReferenceEquals(x.Name, y.Name)
-                && ReferenceEquals(x.Namespace, y.Namespace)
+                && ReferenceEquals(x.ContainingNamespace, y.ContainingNamespace)
                 ) return true;
             return StringComparer.Ordinal.Equals(x.Name, y.Name)
-                && StringComparer.Ordinal.Equals(x.Namespace, y.Namespace);
+                && StringComparer.Ordinal.Equals(x.ContainingNamespace, y.ContainingNamespace);
         }
 
         public int GetHashCode(TypeIdentity obj) {
             unchecked { 
                 return StringComparer.Ordinal.GetHashCode(obj.Name)
-                    ^ StringComparer.Ordinal.GetHashCode(obj.Namespace)
+                    ^ StringComparer.Ordinal.GetHashCode(obj.ContainingNamespace)
                     ;
             }
         }

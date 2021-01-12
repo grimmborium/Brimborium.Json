@@ -5,35 +5,36 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Disguise.CompileTime {
-    public class AssemblyCTDisguise : AssemblyDisguise {
+    public sealed class AssemblyCTDisguise : AssemblyDisguise {
+        public static AssemblyIdentity GetAssemblyIdentity(Project project) => new AssemblyIdentity(project.AssemblyName);
+
         public readonly Project Project;
+        private readonly AssemblyIdentity _Identity;
 
         public AssemblyCTDisguise(Project project, ContextDisguise? contextDisguise)
             : base(contextDisguise) {
             this.Project = project;
+            this._Identity = GetAssemblyIdentity(project);
+            //
+            this.PostInit();
         }
 
-        public override string Name => this.Project.AssemblyName;
+        public override string Name => this._Identity.Name;
 
-        public override AssemblyIdentity Identity => new AssemblyIdentity(this.Name);
+        public override AssemblyIdentity Identity => this._Identity;
 
-        public Compilation? Compilation { get; set; }
-
-        public async Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken)) {
-            var compilation=this.Compilation ??= await this.Project.GetCompilationAsync(cancellationToken);
-            if (compilation is object) {
-                InspectNamespace(compilation.GlobalNamespace);
-                
+        protected override void ContextDisguiseUpdated() {
+            if (this.ContextDisguise is object) { 
+                this.ContextDisguise.Assemblies[this.Identity] = this;
             }
-            return this.Compilation;
         }
 
         private void InspectNamespace(INamespaceSymbol? namespaceSymbol) {
             if (namespaceSymbol is null) {
                 return;
-            } 
+            }
             if (namespaceSymbol.IsGlobalNamespace) {
-            } else { 
+            } else {
             }
             //foreach (var namespaceMember in namespaceSymbol.GetNamespaceMembers()) {
             //    InspectNamespace(namespaceMember);
@@ -51,9 +52,9 @@ namespace Brimborium.Disguise.CompileTime {
         private void InspectType(ITypeSymbol type) {
             // type.GetTypeMembers()
             //TypeCTDisguise.
-            var typeInfo = new TypeCTDisguise(type, this.ContextDisguise);
-            this.ContextDisguise.Assemblies
-            
+            // var typeInfo = new TypeCTDisguise(type, this.ContextDisguise);
+            //this.ContextDisguise.Assemblies
+
         }
     }
 }

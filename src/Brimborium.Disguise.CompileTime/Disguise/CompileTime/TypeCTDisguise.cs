@@ -4,26 +4,61 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using System.Threading;
 
 namespace Brimborium.Disguise.CompileTime {
-    public class TypeCTDisguise : TypeDisguise {
-        public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol) => new TypeIdentity(typeSymbol.Name);
-        //private readonly TypeInfo _TypeInfo;
-        public readonly ITypeSymbol TypeSymbol;
+    public sealed class TypeCTDisguise : TypeDisguise {
+        // public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol) => new TypeIdentity(typeSymbol.Name, "");
+        // public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol) => new TypeIdentity(typeSymbol.Name, typeSymbol.ContainingNamespace, typeSymbol.ContainingAssembly?.ContainingAssembly?.Identity?.Name);
+        // INamedTypeSymbol
+        public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol) => new TypeIdentity(
+                typeSymbol.ToDisplayString(),
+                typeSymbol.Name,
+                typeSymbol.ContainingType?.ToDisplayString(),
+                typeSymbol.ContainingNamespace?.ToDisplayString(),
+                null
+                //typeSymbol.ContainingAssembly?.ContainingAssembly?.Identity?.Name
+            );
+        public static TypeIdentity GetTypeIdentity(ITypeSymbol typeSymbol, AssemblyIdentity assemblyIdentity) => new TypeIdentity(
+                typeSymbol.ToDisplayString(),
+                typeSymbol.Name,
+                typeSymbol.ContainingType?.ToDisplayString(),
+                typeSymbol.ContainingNamespace?.ToDisplayString(),
+                assemblyIdentity
+            //typeSymbol.ContainingAssembly?.ContainingAssembly?.Identity?.Name
+            );
 
-        public TypeCTDisguise(ITypeSymbol typeSymbol, ContextDisguise? contextDisguise)
+        //private readonly TypeInfo _TypeInfo;
+        public readonly INamedTypeSymbol NamedTypeSymbol;
+        private readonly AssemblyDisguise _Assembly;
+        private readonly TypeIdentity _Identity;
+
+        public TypeCTDisguise(INamedTypeSymbol typeSymbol, AssemblyDisguise assembly, ContextDisguise? contextDisguise)
             : base(contextDisguise) {
-            this.TypeSymbol = typeSymbol;
+            this.NamedTypeSymbol = typeSymbol;
+            this._Assembly = assembly;
+            this._Identity = GetTypeIdentity(typeSymbol, assembly.Identity);
+            //
+            this.PostInit();
         }
 
-        public override string Name => this.TypeSymbol.Name;
+        protected override void ContextDisguiseUpdated() {
+            if (this.ContextDisguise is object) {
+                this.ContextDisguise.Types[this.Identity] = this;
+            }
+        }
+        public override TypeIdentity Identity => this._Identity;
+        public override string Name => this.NamedTypeSymbol.Name;
 
-        public override string Namespace => (this.TypeSymbol.ContainingNamespace is null)
+        public override string Namespace => (this.NamedTypeSymbol.ContainingNamespace is null)
             ? string.Empty
-            : this.TypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            : this.NamedTypeSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-        public override AssemblyDisguise Assembly => (this.TypeSymbol.ContainingAssembly is null)
-            ? string.Empty
-            : this.TypeSymbol.ContainingAssembly.Name;
+        public override AssemblyDisguise Assembly => this._Assembly;
+        //(this.TypeSymbol.ContainingAssembly is null)
+        //? string.Empty
+        //: this.TypeSymbol.ContainingAssembly.Name;
 
+        public override bool IsArray => base.IsArray;
+        public override bool IsClass => this.NamedTypeSymbol.IsGenericType;
+        public override bool IsValueType => base.IsValueType;
     }
 }
 

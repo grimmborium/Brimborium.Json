@@ -17,7 +17,7 @@ namespace Brimborium.Disguise.RunTime {
             : base(contextDisguise) {
             this.TypeInfo = typeInfo;
             // this.TypeInfo.GetMembers
-            // this.TypeInfo.Assembly
+            // this.TypeInfo.IsGenericType
         }
 
         public override string Name => this.TypeInfo.Name;
@@ -42,5 +42,9 @@ namespace Brimborium.Disguise.RunTime {
                 }
             }
         }
+
+        public override bool IsArray => this.TypeInfo.IsArray;
+        public override bool IsClass => this.TypeInfo.IsClass;
+        public override bool IsValueType => this.TypeInfo.IsValueType;
     }
 }

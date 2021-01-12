@@ -8,6 +8,12 @@ namespace Brimborium.Disguise {
             this._ContextDisguise = contextDisguise;
         }
 
+        protected void PostInit() {
+            if (this._ContextDisguise is not null) {
+                this.ContextDisguiseUpdated();
+            }
+        }
+
         public ContextDisguise? ContextDisguise {
             get {
                 return this._ContextDisguise;

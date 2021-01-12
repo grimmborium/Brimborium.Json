@@ -1,46 +1,30 @@
-﻿using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
-using System;
-using System.Linq;
-
 namespace Brimborium.Disguise.CompileTime {
-    public class BuildUtility {
-        public static void InitLocator(string? msbuildPath) {
-            try {
-                if (!string.IsNullOrEmpty(msbuildPath)) {
-                    Microsoft.Build.Locator.MSBuildLocator.RegisterMSBuildPath(msbuildPath);
-                } else {
-                    Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
-                }
-            } catch {
-            }
-        }
-    }
-    public class WorkspaceUtility {
-
-
-        public static WorkspaceUtility Create(Dictionary<string, string>? properties) {
-            var result = new WorkspaceUtility(properties);
+    public partial class WorkspaceCTUtility {
+        public static WorkspaceCTUtility Create(Dictionary<string, string>? properties) {
+            var result = new WorkspaceCTUtility(properties);
             result.InitWorkspace();
             return result;
         }
 
-        public WorkspaceUtility(Dictionary<string, string>? properties) {
+        public WorkspaceCTUtility(Dictionary<string, string>? properties) {
             this.Properties = properties ?? new Dictionary<string, string>();
-            this.Projects = new List<Project>();
+            this.Projects = new List<ProjectCTUtility>();
         }
         public string? MsBuildPath { get; }
         public Dictionary<string, string> Properties { get; }
 
         public MSBuildWorkspace? Workspace { get; private set; }
         public Solution? Solution { get; private set; }
-        public List<Project> Projects { get; }
-
+        public List<ProjectCTUtility> Projects { get; }
 
         public MSBuildWorkspace InitWorkspace() {
             if (this.Workspace is object) {
@@ -72,56 +56,85 @@ namespace Brimborium.Disguise.CompileTime {
             }
             Solution solution = await this.Workspace.OpenSolutionAsync(solutionFilePath, cancellationToken: cancellationToken);
             this.Solution = solution;
-            await AddProjectsAsync(solution, contextDisguise);
+            var topologicallySortedProjects = solution.GetProjectDependencyGraph().GetTopologicallySortedProjects();
+            foreach (var projectId in topologicallySortedProjects) {
+                var project = solution.GetProject(projectId);
+                var projectUtility = new ProjectCTUtility(project);
+                this.Projects.Add(projectUtility);
+                await AddProjectAsync(projectUtility, contextDisguise, cancellationToken);
+            }
             return solution;
         }
 
-        public async Task<Project?> OpenProjectAsync(string projectFilePath, ContextDisguise contextDisguise, CancellationToken cancellationToken) {
+        public async Task<Project?> OpenProjectAsync(
+            string projectFilePath,
+            ContextDisguise contextDisguise,
+            CancellationToken cancellationToken) {
             if (this.Workspace is null) {
                 throw new InvalidOperationException("Init not called.");
             }
             if (this.Solution is null) {
                 Project project = await this.Workspace.OpenProjectAsync(projectFilePath, cancellationToken: cancellationToken);
                 this.Solution = project.Solution;
-                await AddProjectsAsync(this.Solution, contextDisguise);
+                var projectUtility = new ProjectCTUtility(project);
+                this.Projects.Add(projectUtility);
+                await AddProjectAsync(projectUtility, contextDisguise, cancellationToken);
+
                 return project;
             } else {
-                Project? project = this.Solution.Projects.FirstOrDefault(p => string.Equals(p.FilePath, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
+                var projectUtility = this.Projects.FirstOrDefault(p => string.Equals(p.Project.FilePath, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
 
-                if (project is null) {
-                    project = this.Solution.Projects.FirstOrDefault(p => string.Equals(p.Name, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
+                if (projectUtility is null) {
+                    projectUtility = this.Projects.FirstOrDefault(p => string.Equals(p.Project.Name, projectFilePath, StringComparison.InvariantCultureIgnoreCase));
                 }
 
-                if (project is object) {
-                    await AddProjectAsync(project, contextDisguise);
-                }
-
-                return project;
+                return projectUtility?.Project;
             }
         }
 
-        private  async Task AddProjectsAsync(Solution solution, ContextDisguise contextDisguise) {
-            foreach (var project in solution.Projects) {
-                await AddProjectAsync(project, contextDisguise);
-            }
-        }
+        private static async Task AddProjectAsync(
+            ProjectCTUtility projectUtility,
+            ContextDisguise contextDisguise,
+            CancellationToken cancellationToken) {
 
-        private static async Task AddProjectAsync(Project project, ContextDisguise contextDisguise) {
-            var assembly = new AssemblyCTDisguise(project, contextDisguise);
-            // var compilation = await project.GetCompilationAsync(cancellationToken);
-            var assemblyIdentity = new AssemblyIdentity(project.AssemblyName);
-            if (contextDisguise.TryGetAssembly(assemblyIdentity, out var assemblyFound)) {
+            if (contextDisguise.TryGetAssembly(projectUtility.AssemblyIdentity, out var assemblyFound)) {
                 if (assemblyFound is AssemblyCTDisguise assemblyCTDisguise) {
-                    if (ReferenceEquals(assemblyCTDisguise.Project, project)) {
+                    if (ReferenceEquals(assemblyCTDisguise.Project, projectUtility.Project)) {
                         return;
-                    } else {
-                        assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
+                    }
+                } else {
+                    return;
+                }
+            }
+            {
+                var assembly = new AssemblyCTDisguise(projectUtility.Project, contextDisguise);
+                projectUtility.Assembly = assembly;
+                await projectUtility.GetCompilationAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+
+        public async Task<List<CodeUtility>> ProcessProjectsAsync(
+            Func<ProjectCTUtility, bool>? predicateProject,
+            Func<Compilation, bool>? predicateCompilation,
+            ContextDisguise contextDisguise,
+            Action<ContextDisguise, CodeUtility> process,
+            CancellationToken cancellationToken) {
+            var result = new List<CodeUtility>();
+            foreach (var projectUtility in this.Projects) {
+                if (predicateProject is null || predicateProject(projectUtility)) {
+                    var projects = await projectUtility.ProcessProjectAsync(
+                        predicateCompilation, 
+                        contextDisguise,
+                        process,
+                        cancellationToken);
+                    if (projects.Count > 0) {
+                        result.AddRange(projects);
                     }
                 }
-            } else {
-                assembly.Compilation = await assembly.Project.GetCompilationAsync(default);
             }
-            contextDisguise.Assemblies[assemblyIdentity] = assembly;
+            return result;
         }
 
 #if false

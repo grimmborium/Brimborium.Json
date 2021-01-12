@@ -38,7 +38,7 @@ namespace Brimborium.Json.Tool {
         public static async Task<int> Generate(string solution, string[] arrProject, IConsole console, CancellationToken cancellationToken) {
             /* do something */
             BuildUtility.InitLocator(null);
-            WorkspaceUtility workspaceUtility = WorkspaceUtility.Create( null);
+            WorkspaceCTUtility workspaceUtility = WorkspaceCTUtility.Create( null);
             console.Out.WriteLine("Generate");
             console.Out.WriteLine($"Solution: {solution}");
             var contextDisguise = new Brimborium.Disguise.ContextDisguise();
