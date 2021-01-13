@@ -8,6 +8,7 @@
 
     <LangVersion>9.0</LangVersion>
 
+    <Nullable>enable</Nullable>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -40,6 +41,26 @@
     <DefineConstants>RELEASE;NETSTANDARD;NETSTANDARD2_0;AllowUnsafeBlocks</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resolvers\AttributeFormatterResolver.cs" />
+    <Compile Remove="Resolvers\BuiltinResolver.cs" />
+    <Compile Remove="Resolvers\CompositeResolver.cs" />
+    <Compile Remove="Resolvers\DynamicGenericResolver.cs" />
+    <Compile Remove="Resolvers\DynamicObjectResolver.cs" />
+    <Compile Remove="Resolvers\EnumResolver.cs" />
+    <Compile Remove="Resolvers\StandardResolver.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resolvers\AttributeFormatterResolver.cs" />
+    <None Include="Resolvers\BuiltinResolver.cs" />
+    <None Include="Resolvers\CompositeResolver.cs" />
+    <None Include="Resolvers\DynamicGenericResolver.cs" />
+    <None Include="Resolvers\DynamicObjectResolver.cs" />
+    <None Include="Resolvers\EnumResolver.cs" />
+    <None Include="Resolvers\StandardResolver.cs" />
+  </ItemGroup>
 
   <!--
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using Brimborium.Json.Internal;
+using Brimborium.Json.Resolvers;
 
 using System;
 using System.Collections.Generic;
@@ -94,6 +95,9 @@ namespace Brimborium.Json {
             this.PropertyNameMutator = StringMutator.Original;
             this.Resolvers = new List<IJsonFormatterResolver>();
             this.Formatters = new List<IJsonFormatter>();
+
+            this.Resolvers.AddRange(BuiltinResolvers.GetResolvers());
+            this.Formatters.AddRange(BuiltinResolvers.GetFormatters());
         }
 
         public JsonSerializationConfigurationBuilder WithPropertyNameMutator(string propertyNameMutator) {
@@ -110,7 +114,6 @@ namespace Brimborium.Json {
             return JsonSerializationConfiguration.Build(this);
         }
     }
-
     public class JsonSerializationConfiguration {
 
         internal static JsonSerializationConfiguration Build(JsonSerializationConfigurationBuilder builder) {
@@ -151,56 +154,99 @@ namespace Brimborium.Json {
             this.Resolvers = new List<IJsonFormatterResolver>();
         }
 
-        private JsonSerializationConfigurationForReader<JsonReaderUtf8>? _cfgJsonReaderUtf8;
-        private JsonSerializationConfigurationForReader<JsonReaderCharArray>? _cfgJsonReaderCharArray;
+        private JsonDeserializerConfiguration<JsonReaderUtf8>? _cfgJsonReaderUtf8;
+        private JsonDeserializerConfiguration<JsonReaderUtf16>? _cfgJsonReaderUtf16;
 
         public virtual Type? GetReaderType() => null;
         public virtual Type? GetWriterType() => null;
 
-        public virtual JsonSerializationConfiguration ForReader<TJsonReader>()
-            where TJsonReader : JsonReader {
-            if (typeof(TJsonReader).Equals(typeof(JsonReaderUtf8))) {
-                return (_cfgJsonReaderUtf8 ??= (new JsonSerializationConfigurationForReader<JsonReaderUtf8>(this).Init()));
+        public virtual JsonDeserializerConfiguration<JsonReaderUtf8> ForDeserializationUtf8() {
+            if (_cfgJsonReaderUtf8 is null) {
+                lock (this) {
+                    if (_cfgJsonReaderUtf8 is null) {
+                        var cfg = new JsonDeserializerConfiguration<JsonReaderUtf8>(this);
+                        cfg.Init();
+                        _cfgJsonReaderUtf8 = cfg;
+                    }
+                }
             }
-            if (typeof(TJsonReader).Equals(typeof(JsonReaderCharArray))) {
-                return (_cfgJsonReaderCharArray ??= (new JsonSerializationConfigurationForReader<JsonReaderCharArray>(this).Init()));
-            }
-            throw new NotSupportedException();
+            return _cfgJsonReaderUtf8;
         }
 
-        private JsonSerializationConfigurationForWriter<JsonWriterUtf8>? _cfgJsonWriterUtf8;
-        private JsonSerializationConfigurationForWriter<JsonWriterCharArray>? _cfgJsonWriterCharArray;
-        private JsonSerializationConfigurationForWriter<JsonWriterStringBuilder>? _cfgJsonWriterStringBuilder;
+        public virtual JsonDeserializerConfiguration<JsonReaderUtf16> ForDeserializationUtf16(){
+            if (_cfgJsonReaderUtf16 is null) {
+                lock (this) {
+                    if (_cfgJsonReaderUtf16 is null) {
+                        var cfg = new JsonDeserializerConfiguration<JsonReaderUtf16>(this);
+                        cfg.Init();
+                        _cfgJsonReaderUtf16 = cfg;
+                    }
+                }
+            }
+            return _cfgJsonReaderUtf16;
+        }
 
-        public virtual JsonSerializationConfiguration ForWriter<TJsonWriter>()
+
+        private JsonSerializerConfiguration<JsonWriterUtf8>? _cfgJsonWriterUtf8;
+        private JsonSerializerConfiguration<JsonWriterUtf16>? _cfgJsonWriterUtf16;
+
+        /*
+        public virtual JsonSerializationConfiguration<TJsonWriter> ForSerialization<TJsonWriter>([AllowNull] TJsonWriter writer = default)
             where TJsonWriter : JsonWriter {
             if (typeof(TJsonWriter).Equals(typeof(JsonWriterUtf8))) {
-                return (_cfgJsonWriterUtf8 ??= (new JsonSerializationConfigurationForWriter<JsonWriterUtf8>(this).Init()));
+                return (JsonSerializationConfiguration<TJsonWriter>)(_cfgJsonWriterUtf8 ??= (new JsonSerializerConfiguration<JsonWriterUtf8>(this).Init()));
             }
-            if (typeof(TJsonWriter).Equals(typeof(JsonWriterCharArray))) {
-                return (_cfgJsonWriterCharArray ??= (new JsonSerializationConfigurationForWriter<JsonWriterCharArray>(this).Init()));
-            }
-            if (typeof(TJsonWriter).Equals(typeof(JsonWriterStringBuilder))) {
-                return (_cfgJsonWriterStringBuilder ??= (new JsonSerializationConfigurationForWriter<JsonWriterStringBuilder>(this).Init()));
+            if (typeof(TJsonWriter).Equals(typeof(JsonWriterUtf16))) {
+                return (JsonSerializationConfiguration<TJsonWriter>)(_cfgJsonWriterUtf16 ??= (new JsonSerializerConfiguration<JsonWriterUtf16>(this).Init()));
             }
             throw new NotSupportedException();
         }
+        */
 
-        public virtual IJsonSerializer2<T> GetSerializer<T>() {
+        public virtual JsonSerializationConfiguration<JsonWriterUtf8> ForSerializationUtf8() {
+            if (_cfgJsonWriterUtf8 is null) {
+                lock (this) {
+                    if (_cfgJsonWriterUtf8 is null) {
+                        var cfg = new JsonDeserializerConfiguration<JsonWriterUtf8>(this);
+                        cfg.Init();
+                        _cfgJsonWriterUtf8 = cfg;
+                    }
+                }
+            }
+            return _cfgJsonWriterUtf8;
+        }
+
+        public virtual JsonSerializationConfiguration<JsonWriterUtf16> ForSerializationUtf16() {
+            if (_cfgJsonWriterUtf16 is null) {
+                lock (this) {
+                    if (_cfgJsonWriterUtf16 is null) {
+                        var cfg = new JsonDeserializerConfiguration<JsonWriterUtf16>(this);
+                        cfg.Init();
+                        _cfgJsonWriterUtf16 = cfg;
+                    }
+                }
+            }
+            return _cfgJsonWriterUtf16;
+        }
+
+        public virtual IJsonSerializer<T, TJsonWriter> GetSerializer<T, TJsonWriter>()
+            where TJsonWriter : JsonWriter {
             throw new NotImplementedException();
         }
-        public virtual IJsonDeserializer2<T> GetDeserializer<T>() {
+
+        public virtual IJsonDeserializer<T, TJsonReader> GetDeserializer<T, TJsonReader>()
+            where TJsonReader : JsonReader {
             throw new NotImplementedException();
         }
 
     }
 
-    public class JsonSerializationConfigurationForReader<TForJsonReader>
+    public class JsonDeserializerConfiguration<TForJsonReader>
         : JsonSerializationConfiguration
         where TForJsonReader : JsonReader {
         private readonly JsonSerializationConfiguration _Configuration;
 
-        public JsonSerializationConfigurationForReader(
+        public JsonDeserializerConfiguration(
                 JsonSerializationConfiguration configuration
             ) : base(
                 configuration.PropertyNameMutator,
@@ -212,39 +258,47 @@ namespace Brimborium.Json {
 
         public override Type? GetReaderType() => typeof(TForJsonReader);
 
-        public override JsonSerializationConfiguration ForReader<TJsonReader>() => (
-            (typeof(TForJsonReader).Equals(typeof(TJsonReader))) 
-                ? this 
-                : this._Configuration.ForReader<TJsonReader>()
+        public override JsonSerializationConfiguration ForDeserialization<TJsonReader>([AllowNull] TJsonReader jsonReader = default)
+            => (
+            (typeof(TForJsonReader).Equals(typeof(TJsonReader)))
+                ? this
+                : this._Configuration.ForDeserialization<TJsonReader>()
             );
 
-        public override JsonSerializationConfiguration ForWriter<TJsonWriter>() => this._Configuration.ForWriter<TJsonWriter>();
+        public override JsonSerializationConfiguration ForSerialization<TJsonWriter>([AllowNull] TJsonWriter writer = default)
+            => this._Configuration.ForSerialization<TJsonWriter>();
 
-        public JsonSerializationConfigurationForReader<TForJsonReader> Init() {
+        public JsonDeserializerConfiguration<TForJsonReader> Init() {
             foreach (var resolver in this._Configuration.Resolvers) {
                 if (resolver is IJsonDeserializerResolverCommon || resolver is IJsonDeserializerResolver<TForJsonReader>) {
                     var boundResolver = resolver.BindForReader(this);
-                    this.Resolvers.Add(boundResolver);
+                    if (boundResolver is object) {
+                        this.Resolvers.Add(boundResolver);
+                    }
                 }
             }
             foreach (var formatter in this._Configuration.Formatters) {
                 var boundFormatter = formatter.BindForReader(this);
 #warning here Formatters
-                this.Formatters.Add(boundFormatter);
+                if (boundFormatter is object) {
+                    this.Formatters.Add(boundFormatter);
+                }
             }
             return this;
         }
 
-        public override IJsonDeserializer2<T> GetDeserializer<T>() {
-            return base.GetDeserializer<T>();
+        public override IJsonDeserializer<T, TJsonReader> GetDeserializer<T, TJsonReader>() {
+            if (typeof(TForJsonReader).Equals(typeof(TJsonReader))) {
+            }
+            return base.GetDeserializer<T, TJsonReader>();
         }
     }
-    public class JsonSerializationConfigurationForWriter<TForJsonWriter>
+    public class JsonSerializerConfiguration<TForJsonWriter>
         : JsonSerializationConfiguration
         where TForJsonWriter : JsonWriter {
         private readonly JsonSerializationConfiguration _Configuration;
 
-        public JsonSerializationConfigurationForWriter(
+        public JsonSerializerConfiguration(
                 JsonSerializationConfiguration configuration
             ) : base(
                 configuration.PropertyNameMutator,
@@ -254,34 +308,40 @@ namespace Brimborium.Json {
             this._Configuration = configuration;
         }
 
-        public override JsonSerializationConfiguration ForReader<TJsonReader>() => this._Configuration.ForReader<TJsonReader>();
+        public override JsonSerializationConfiguration ForDeserialization<TJsonReader>([AllowNull] TJsonReader reader = default)
+            => this._Configuration.ForDeserialization<TJsonReader>(reader);
 
-        public override JsonSerializationConfiguration ForWriter<TJsonWriter>() => (
+        public override JsonSerializationConfiguration ForSerialization<TJsonWriter>([AllowNull] TJsonWriter writer = default)
+            => (
             (typeof(TForJsonWriter).Equals(typeof(TJsonWriter)))
                 ? this
-                : this._Configuration.ForWriter<TJsonWriter>()
+                : this._Configuration.ForSerialization<TJsonWriter>(writer)
             );
 
         public override Type? GetWriterType() => typeof(TForJsonWriter);
 
-        public JsonSerializationConfigurationForWriter<TForJsonWriter> Init() {
+        public JsonSerializerConfiguration<TForJsonWriter> Init() {
             foreach (var resolver in this._Configuration.Resolvers) {
                 if (resolver is IJsonSerializerResolverCommon || resolver is IJsonSerializerResolver<TForJsonWriter>) {
                     var boundResolver = resolver.BindForWriter(this);
-                    this.Resolvers.Add(boundResolver);
+                    if (boundResolver is object) {
+                        this.Resolvers.Add(boundResolver);
+                    }
                 }
             }
             foreach (var formatter in this._Configuration.Formatters) {
                 var boundFormatter = formatter.BindForReader(this);
 #warning here Formatters
-                this.Formatters.Add(boundFormatter);
+                if (boundFormatter is object) {
+                    this.Formatters.Add(boundFormatter);
+                }
             }
 
             return this;
         }
 
-        public override IJsonSerializer2<T> GetSerializer<T>() {
-            return base.GetSerializer<T>();
+        public override IJsonSerializer<T, TJsonWriter> GetSerializer<T, TJsonWriter>() {
+            return base.GetSerializer<T, TJsonWriter>(writer);
         }
     }
 

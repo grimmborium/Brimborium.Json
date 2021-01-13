@@ -1,11 +1,11 @@
 ﻿using System;
 
 namespace Brimborium.Json {
-    public class JsonReaderCharArray : JsonReader {
+    public class JsonReaderUtf16 : JsonReader {
         private readonly char[] bytes;
         private int offset;
 
-        public JsonReaderCharArray() {
+        public JsonReaderUtf16() {
             this.bytes = Array.Empty<char>();
             this.offset = 0;
         }

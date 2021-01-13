@@ -53,20 +53,20 @@ namespace Brimborium.Json.Resolvers
         public static void RegisterAndSetAsDefault(params IJsonFormatterResolver[] resolvers)
         {
             Register(resolvers);
-            Serializer.SetDefaultResolver(CompositeResolver.Instance);
+            JsonSerializer.SetDefaultResolver(CompositeResolver.Instance);
         }
 
         public static void RegisterAndSetAsDefault(params IJsonFormatter[] formatters)
         {
             Register(formatters);
-            Serializer.SetDefaultResolver(CompositeResolver.Instance);
+            JsonSerializer.SetDefaultResolver(CompositeResolver.Instance);
         }
 
         public static void RegisterAndSetAsDefault(IJsonFormatter[] formatters, IJsonFormatterResolver[] resolvers)
         {
             Register(formatters);
             Register(resolvers);
-            Serializer.SetDefaultResolver(CompositeResolver.Instance);
+            JsonSerializer.SetDefaultResolver(CompositeResolver.Instance);
         }
 
         public static IJsonFormatterResolver Create(params IJsonFormatter[] formatters)

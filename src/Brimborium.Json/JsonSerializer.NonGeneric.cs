@@ -37,7 +37,7 @@ namespace Brimborium.Json
             public static byte[] Serialize(object value)
             {
                 if (value == null) return Serialize<object>(value);
-                return Serialize(value.GetType(), value, Serializer.DefaultResolver);
+                return Serialize(value.GetType(), value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -45,7 +45,7 @@ namespace Brimborium.Json
             /// </summary>
             public static byte[] Serialize(Type type, object value)
             {
-                return Serialize(type, value, Serializer.DefaultResolver);
+                return Serialize(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -74,7 +74,7 @@ namespace Brimborium.Json
             public static void Serialize(Stream stream, object value)
             {
                 if (value == null) { Serialize<object>(stream, value); return; }
-                Serialize(value.GetType(), stream, value, Serializer.DefaultResolver);
+                Serialize(value.GetType(), stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -82,7 +82,7 @@ namespace Brimborium.Json
             /// </summary>
             public static void Serialize(Type type, Stream stream, object value)
             {
-                Serialize(type, stream, value, Serializer.DefaultResolver);
+                Serialize(type, stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -108,7 +108,7 @@ namespace Brimborium.Json
             public static System.Threading.Tasks.Task SerializeAsync(Stream stream, object value)
             {
                 if (value == null) { return SerializeAsync<object>(stream, value); }
-                return SerializeAsync(value.GetType(), stream, value, Serializer.DefaultResolver);
+                return SerializeAsync(value.GetType(), stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -116,7 +116,7 @@ namespace Brimborium.Json
             /// </summary>
             public static System.Threading.Tasks.Task SerializeAsync(Type type, Stream stream, object value)
             {
-                return SerializeAsync(type, stream, value, Serializer.DefaultResolver);
+                return SerializeAsync(type, stream, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -151,7 +151,7 @@ namespace Brimborium.Json
 
             public static void Serialize(Type type, JsonWriter writer, object value)
             {
-                Serialize(type, writer, value, Serializer.DefaultResolver);
+                Serialize(type, writer, value, JsonSerializer.DefaultResolver);
             }
 
             public static void Serialize(Type type, JsonWriter writer, object value, IJsonFormatterResolver resolver)
@@ -173,7 +173,7 @@ namespace Brimborium.Json
             /// </summary>
             public static ArraySegment<byte> SerializeUnsafe(Type type, object value)
             {
-                return SerializeUnsafe(type, value, Serializer.DefaultResolver);
+                return SerializeUnsafe(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -207,7 +207,7 @@ namespace Brimborium.Json
             /// </summary>
             public static string ToJsonString(Type type, object value)
             {
-                return ToJsonString(type, value, Serializer.DefaultResolver);
+                return ToJsonString(type, value, JsonSerializer.DefaultResolver);
             }
 
             /// <summary>
@@ -229,7 +229,7 @@ namespace Brimborium.Json
 
             public static object Deserialize(Type type, string json)
             {
-                return Deserialize(type, json, Serializer.DefaultResolver);
+                return Deserialize(type, json, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, string json, IJsonFormatterResolver resolver)
@@ -239,17 +239,17 @@ namespace Brimborium.Json
 
             public static object Deserialize(Type type, byte[] bytes)
             {
-                return Deserialize(type, bytes, Serializer.DefaultResolver);
+                return Deserialize(type, bytes, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, IJsonFormatterResolver resolver)
             {
-                return Deserialize(type, bytes, 0, Serializer.DefaultResolver);
+                return Deserialize(type, bytes, 0, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, int offset)
             {
-                return Deserialize(type, bytes, offset, Serializer.DefaultResolver);
+                return Deserialize(type, bytes, offset, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, byte[] bytes, int offset, IJsonFormatterResolver resolver)
@@ -259,7 +259,7 @@ namespace Brimborium.Json
 
             public static object Deserialize(Type type, Stream stream)
             {
-                return Deserialize(type, stream, Serializer.DefaultResolver);
+                return Deserialize(type, stream, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, Stream stream, IJsonFormatterResolver resolver)
@@ -269,7 +269,7 @@ namespace Brimborium.Json
 
             public static object Deserialize(Type type, JsonReader reader)
             {
-                return Deserialize(type, reader, Serializer.DefaultResolver);
+                return Deserialize(type, reader, JsonSerializer.DefaultResolver);
             }
 
             public static object Deserialize(Type type, JsonReader reader, IJsonFormatterResolver resolver)
@@ -281,7 +281,7 @@ namespace Brimborium.Json
 
             public static System.Threading.Tasks.Task<object> DeserializeAsync(Type type, Stream stream)
             {
-                return DeserializeAsync(type, stream, Serializer.DefaultResolver);
+                return DeserializeAsync(type, stream, JsonSerializer.DefaultResolver);
             }
 
             public static System.Threading.Tasks.Task<object> DeserializeAsync(Type type, Stream stream, IJsonFormatterResolver resolver)

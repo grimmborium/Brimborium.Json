@@ -24,7 +24,8 @@ namespace Brimborium.Json {
                 name,
                 order,
                 isReadable,
-                isWritable
+                isWritable,
+                false
             ));
             return this;
         }
@@ -35,17 +36,6 @@ namespace Brimborium.Json {
     }
 
     public class JsonPropertySerializationData {
-        private string _Name;
-        private int _Order;
-        private bool _IsReadable;
-        private bool _IsWritable;
-
-        public JsonPropertySerializationData(string name, int order, bool isReadable, bool isWritable) {
-            this._Name = name;
-            this._Order = order;
-            this._IsReadable = isReadable;
-            this._IsWritable = isWritable;
-        }
 
         public JsonPropertySerializationData(
                 string name,

@@ -1,8 +1,9 @@
-﻿#nullable disable
+﻿#nullable enable
 
 using Brimborium.Json.Internal;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,10 +16,30 @@ namespace Brimborium.Json {
         private static JsonWriterUtf8? _JsonWriterUtf8;
 
         /// <summary>
+        /// Serialize to binary with specified resolver.
+        /// </summary>
+        public static byte[] Serialize<T>(T value, [AllowNull]JsonSerializationConfiguration configuration=default) {
+            if (configuration == null) {
+                configuration = JsonSerializer.GetDefaultConfiguration();
+            }
+
+            var writer = System.Threading.Interlocked.Exchange(ref _JsonWriterUtf8, null)
+                ?? new JsonWriterUtf8(MemoryPool.GetBuffer());
+            var configurationForWriter = configuration.ForSerialization(writer);
+            var serializerForT = configurationForWriter.GetSerializerWithVerify<T>();
+            serializerForT.Serialize(writer, value, configurationForWriter);
+            var result = writer.ToUtf8ByteArray();
+            if (writer.ownBuffer) {
+                System.Threading.Interlocked.CompareExchange(ref _JsonWriterUtf8, writer, null);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Serialize to binary with default resolver.
         /// </summary>
         public static byte[] Serialize<T>(T obj) {
-            return Serialize(obj, Serializer.DefaultResolver);
+            return Serialize(obj, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -26,7 +47,7 @@ namespace Brimborium.Json {
         /// </summary>
         public static byte[] Serialize<T>(T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var writer = System.Threading.Interlocked.Exchange(ref _JsonWriterUtf8, null)
@@ -41,12 +62,12 @@ namespace Brimborium.Json {
         }
 
         public static void Serialize<T>(JsonWriter writer, T value) {
-            Serialize<T>(writer, value, Serializer.DefaultResolver);
+            Serialize<T>(writer, value, JsonSerializer.DefaultResolver);
         }
 
         public static void Serialize<T>(JsonWriter writer, T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -57,7 +78,7 @@ namespace Brimborium.Json {
         /// Serialize to stream.
         /// </summary>
         public static void Serialize<T>(Stream stream, T value) {
-            Serialize(stream, value, Serializer.DefaultResolver);
+            Serialize(stream, value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -65,7 +86,7 @@ namespace Brimborium.Json {
         /// </summary>
         public static void Serialize<T>(Stream stream, T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var buf = BufferPool.Default.Rent();
@@ -74,7 +95,7 @@ namespace Brimborium.Json {
                 var formatter = resolver.GetFormatterWithVerify<T>();
                 formatter.Serialize(writer, value, resolver);
                 var buffer = writer.GetBuffer();
-                stream.Write(buffer.Array, buffer.Offset, buffer.Count);
+                stream.Write(buffer.Array!, buffer.Offset, buffer.Count);
             } finally {
                 BufferPool.Default.Return(buf);
             }
@@ -84,7 +105,7 @@ namespace Brimborium.Json {
         /// Serialize to stream(write async).
         /// </summary>
         public static System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value) {
-            return SerializeAsync<T>(stream, value, Serializer.DefaultResolver);
+            return SerializeAsync<T>(stream, value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -92,7 +113,7 @@ namespace Brimborium.Json {
         /// </summary>
         public static async System.Threading.Tasks.Task SerializeAsync<T>(Stream stream, T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var buf = BufferPool.Default.Rent();
@@ -101,7 +122,7 @@ namespace Brimborium.Json {
                 var formatter = resolver.GetFormatterWithVerify<T>();
                 formatter.Serialize(writer, value, resolver);
                 var buffer = writer.GetBuffer();
-                await stream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count).ConfigureAwait(false);
+                await stream.WriteAsync(buffer.Array!, buffer.Offset, buffer.Count).ConfigureAwait(false);
             } finally {
                 BufferPool.Default.Return(buf);
             }
@@ -111,7 +132,7 @@ namespace Brimborium.Json {
         /// Serialize to binary. Get the raw memory pool byte[]. The result can not share across thread and can not hold, so use quickly.
         /// </summary>
         public static ArraySegment<byte> SerializeUnsafe<T>(T obj) {
-            return SerializeUnsafe(obj, Serializer.DefaultResolver);
+            return SerializeUnsafe(obj, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -119,7 +140,7 @@ namespace Brimborium.Json {
         /// </summary>
         public static ArraySegment<byte> SerializeUnsafe<T>(T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
             var writer = System.Threading.Interlocked.Exchange(ref _JsonWriterUtf8, null)
              ?? new JsonWriterUtf8(MemoryPool.GetBuffer());
@@ -136,7 +157,7 @@ namespace Brimborium.Json {
         /// Serialize to JsonString.
         /// </summary>
         public static string ToJsonString<T>(T value) {
-            return ToJsonString(value, Serializer.DefaultResolver);
+            return ToJsonString(value, JsonSerializer.DefaultResolver);
         }
 
         /// <summary>
@@ -144,7 +165,7 @@ namespace Brimborium.Json {
         /// </summary>
         public static string ToJsonString<T>(T value, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var buf = BufferPool.Default.Rent();
@@ -159,7 +180,7 @@ namespace Brimborium.Json {
         }
 
         public static T Deserialize<T>(string json) {
-            return Deserialize<T>(json, Serializer.DefaultResolver);
+            return Deserialize<T>(json, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(string json, IJsonFormatterResolver resolver) {
@@ -167,7 +188,7 @@ namespace Brimborium.Json {
         }
 
         public static T Deserialize<T>(byte[] bytes) {
-            return Deserialize<T>(bytes, Serializer.DefaultResolver);
+            return Deserialize<T>(bytes, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(byte[] bytes, IJsonFormatterResolver resolver) {
@@ -175,12 +196,12 @@ namespace Brimborium.Json {
         }
 
         public static T Deserialize<T>(byte[] bytes, int offset) {
-            return Deserialize<T>(bytes, offset, Serializer.DefaultResolver);
+            return Deserialize<T>(bytes, offset, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(byte[] bytes, int offset, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var reader = new JsonReaderUtf8(bytes, offset);
@@ -189,12 +210,12 @@ namespace Brimborium.Json {
         }
 
         public static T Deserialize<T>(JsonReader reader) {
-            return Deserialize<T>(reader, Serializer.DefaultResolver);
+            return Deserialize<T>(reader, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(JsonReader reader, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var formatter = resolver.GetFormatterWithVerify<T>();
@@ -202,12 +223,12 @@ namespace Brimborium.Json {
         }
 
         public static T Deserialize<T>(Stream stream) {
-            return Deserialize<T>(stream, Serializer.DefaultResolver);
+            return Deserialize<T>(stream, JsonSerializer.DefaultResolver);
         }
 
         public static T Deserialize<T>(Stream stream, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
 #if NETSTANDARD && !NET45
@@ -219,11 +240,11 @@ namespace Brimborium.Json {
                     var token = new JsonReaderUtf8(buf2.Array, buf2.Offset).GetCurrentJsonToken();
                     if (token == JsonToken.Number) {
                         var buf3 = new byte[buf2.Count];
-                        Buffer.BlockCopy(buf2.Array, buf2.Offset, buf3, 0, buf3.Length);
+                        Buffer.BlockCopy(buf2.Array!, buf2.Offset, buf3, 0, buf3.Length);
                         return Deserialize<T>(buf3, 0, resolver);
                     }
 
-                    return Deserialize<T>(buf2.Array, buf2.Offset, resolver);
+                    return Deserialize<T>(buf2.Array!, buf2.Offset, resolver);
                 }
             }
 #endif
@@ -242,12 +263,12 @@ namespace Brimborium.Json {
         }
 
         public static System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream) {
-            return DeserializeAsync<T>(stream, Serializer.DefaultResolver);
+            return DeserializeAsync<T>(stream, JsonSerializer.DefaultResolver);
         }
 
         public static async System.Threading.Tasks.Task<T> DeserializeAsync<T>(Stream stream, IJsonFormatterResolver resolver) {
             if (resolver == null) {
-                resolver = Serializer.DefaultResolver;
+                resolver = JsonSerializer.DefaultResolver;
             }
 
             var buffer = BufferPool.Default.Rent();
@@ -393,13 +414,14 @@ namespace Brimborium.Json {
 
         static class MemoryPool {
             [ThreadStatic]
-            static byte[] buffer = null;
+            static byte[]? buffer = null;
 
             public static byte[] GetBuffer() {
                 if (buffer == null) {
-                    buffer = new byte[65536];
+                    return buffer = new byte[65536];
+                } else { 
+                    return buffer;
                 }
-                return buffer;
             }
         }
     }

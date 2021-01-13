@@ -30,31 +30,32 @@ namespace Brimborium.Json {
         , IJsonDeserializer<T> {
     }
 
-    public interface IJsonFormatter2<T>
-        : IJsonFormatter
-        , IJsonSerializer2<T>
-        , IJsonDeserializer2<T> {
-    }
+    public interface IJsonFormatterTyped<T>
+        : IJsonFormatter { }
 
-    public interface IJsonSerializer2<T> : IJsonFormatter {
+    public interface IJsonFormatterCommon<T>
+        : IJsonFormatterTyped<T> {
         void Serialize(JsonWriter writer, T value, JsonSerializationConfiguration configuration);
-    }
-
-    public interface IJsonDeserializer2<T> : IJsonFormatter {
         T Deserialize(JsonReader reader, JsonSerializationConfiguration configuration);
     }
 
-    public interface IJsonSerializer<T, TJsonWriter>
-        : IJsonFormatter
-        where TJsonWriter : JsonWriter {
-        void Serialize(TJsonWriter writer, T value, JsonSerializationConfiguration configuration);
+    public interface IJsonSerializerUtf816<T>
+       : IJsonFormatterTyped<T> {
+        void Serialize(JsonWriterUtf8 writer, T value, JsonSerializationConfiguration configuration);
+        void Serialize(JsonWriterUtf16 writer, T value, JsonSerializationConfiguration configuration);
     }
 
-    public interface IJsonDeserializer<T, TJsonReader>
-        : IJsonFormatter
-        where TJsonReader : JsonReader {
-        T Deserialize(TJsonReader reader, JsonSerializationConfiguration configuration);
+    public interface IJsonDeserializerUtf816<T>
+        : IJsonFormatterTyped<T> {
+        T Deserialize(JsonReaderUtf8 reader, JsonSerializationConfiguration configuration);
+        T Deserialize(JsonReaderUtf16 reader, JsonSerializationConfiguration configuration);
     }
+
+    public interface IJsonFormatterUtf816<T>
+        : IJsonSerializerUtf816<T>
+        , IJsonDeserializerUtf816<T> {
+    }
+
 
     public interface IObjectPropertyNameFormatter<T> {
         void SerializeToPropertyName(JsonWriter writer, T value, IJsonFormatterResolver formatterResolver);

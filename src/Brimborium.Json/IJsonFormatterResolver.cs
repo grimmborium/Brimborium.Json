@@ -1,6 +1,7 @@
-﻿#nullable disable
+﻿#nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Brimborium.Json {
@@ -22,7 +23,7 @@ namespace Brimborium.Json {
 
     public interface IJsonDeserializerResolver<TJsonReader>
             where TJsonReader : JsonReader {
-        IJsonDeserializer<T, TJsonReader> GetJsonDeserializer<T>(JsonSerializationConfiguration configuration)            ;
+        IJsonDeserializer<T, TJsonReader> GetJsonDeserializer<T>(JsonSerializationConfiguration configuration);
     }
 
     public interface IJsonSerializerResolver<TJsonWriter>
@@ -31,10 +32,11 @@ namespace Brimborium.Json {
     }
 
     public static class JsonFormatterResolverExtensions {
-        public static IJsonSerializer2<T> GetSerializerWithVerify<T>(this JsonSerializationConfiguration configuration) {
-            IJsonSerializer2<T> jsonSerializer;
+        public static IJsonSerializer<T, TJsonWriter> GetSerializerWithVerify<T, TJsonWriter>(this JsonSerializationConfiguration configuration)
+            where TJsonWriter : JsonWriter {
+            IJsonSerializer<T, TJsonWriter> jsonSerializer;
             try {
-                jsonSerializer = configuration.GetSerializer<T>();
+                jsonSerializer = configuration.GetSerializer<T, TJsonWriter>();
             } catch (TypeInitializationException ex) {
                 Exception inner = ex;
                 while (inner.InnerException != null) {
@@ -50,10 +52,11 @@ namespace Brimborium.Json {
 
             return jsonSerializer;
         }
-        public static IJsonDeserializer2<T> GetDeserializerWithVerify<T>(this JsonSerializationConfiguration configuration) {
-            IJsonDeserializer2<T> jsonDeserializer;
+        public static IJsonDeserializer<T, TJsonReader> GetDeserializerWithVerify<T, TJsonReader>(this JsonSerializationConfiguration configuration)
+            where TJsonReader : JsonReader {
+            IJsonDeserializer<T, TJsonReader> jsonDeserializer;
             try {
-                jsonDeserializer = configuration.GetDeserializer<T>();
+                jsonDeserializer = configuration.GetDeserializer<T, TJsonReader>();
             } catch (TypeInitializationException ex) {
                 Exception inner = ex;
                 while (inner.InnerException != null) {
@@ -91,10 +94,12 @@ namespace Brimborium.Json {
         }
 
         public static object GetFormatterDynamic(this IJsonFormatterResolver resolver, Type type) {
-            var methodInfo = typeof(IJsonFormatterResolver).GetRuntimeMethod("GetFormatter", Type.EmptyTypes);
+            //var methodInfo = typeof(IJsonFormatterResolver).GetRuntimeMethod("GetFormatter", Type.EmptyTypes);
 
-            var formatter = methodInfo.MakeGenericMethod(type).Invoke(resolver, null);
-            return formatter;
+            //var formatter = methodInfo.MakeGenericMethod(type).Invoke(resolver, null);
+            //return formatter;
+#warning Remove GetFormatterDynamic
+            throw new NotImplementedException();
         }
     }
 

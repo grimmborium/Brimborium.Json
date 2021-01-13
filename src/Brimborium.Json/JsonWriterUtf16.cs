@@ -3,7 +3,8 @@
 using System;
 
 namespace Brimborium.Json {
-    public sealed class JsonWriterStringBuilder : JsonWriter {
+    public sealed class JsonWriterUtf16
+        : JsonWriter {
         static readonly char[] emptyBytes = new char[0];
 
         // write direct from UnsafeMemory
@@ -13,7 +14,7 @@ namespace Brimborium.Json {
 
         internal System.Text.StringBuilder stringBuilder;
 
-        public JsonWriterStringBuilder() {
+        public JsonWriterUtf16() {
             this.stringBuilder = new System.Text.StringBuilder();
         }
 
