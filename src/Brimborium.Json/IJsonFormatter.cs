@@ -2,26 +2,58 @@
 
 namespace Brimborium.Json {
     public delegate void JsonSerializeAction<T>(JsonWriter writer, T value, IJsonFormatterResolver resolver);
+
     public delegate T JsonDeserializeFunc<T>(JsonReader reader, IJsonFormatterResolver resolver);
 
+
+    public delegate void JsonSerializeAction2<T>(JsonWriter writer, T value, JsonSerializationConfiguration configuration);
+
+    public delegate T JsonDeserializeFunc2<T>(JsonReader reader, JsonSerializationConfiguration configuration);
+
     public interface IJsonFormatter {
+        IJsonFormatter? BindForReader(JsonSerializationConfiguration configuration) => this;
+
+        IJsonFormatter? BindForWriter(JsonSerializationConfiguration configuration) => this;
     }
 
-    public interface IJsonFormatter<T> : IJsonFormatter {
+    public interface IJsonSerializer<T> : IJsonFormatter {
         void Serialize(JsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
+    }
 
+    public interface IJsonDeserializer<T> : IJsonFormatter {
         T Deserialize(JsonReader reader, IJsonFormatterResolver formatterResolver);
     }
 
-    public interface IJsonFormatterSpecWriter<T, TJsonWriter>
+    public interface IJsonFormatter<T>
         : IJsonFormatter
-        where TJsonWriter : JsonWriter{
-        void SerializeSpec(TJsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
+        , IJsonSerializer<T>
+        , IJsonDeserializer<T> {
     }
-    public interface IJsonFormatterSpecReader<T, TJsonReader>
+
+    public interface IJsonFormatter2<T>
+        : IJsonFormatter
+        , IJsonSerializer2<T>
+        , IJsonDeserializer2<T> {
+    }
+
+    public interface IJsonSerializer2<T> : IJsonFormatter {
+        void Serialize(JsonWriter writer, T value, JsonSerializationConfiguration configuration);
+    }
+
+    public interface IJsonDeserializer2<T> : IJsonFormatter {
+        T Deserialize(JsonReader reader, JsonSerializationConfiguration configuration);
+    }
+
+    public interface IJsonSerializer<T, TJsonWriter>
+        : IJsonFormatter
+        where TJsonWriter : JsonWriter {
+        void Serialize(TJsonWriter writer, T value, JsonSerializationConfiguration configuration);
+    }
+
+    public interface IJsonDeserializer<T, TJsonReader>
         : IJsonFormatter
         where TJsonReader : JsonReader {
-        T DeserializeSpec(TJsonReader reader, IJsonFormatterResolver formatterResolver);
+        T Deserialize(TJsonReader reader, JsonSerializationConfiguration configuration);
     }
 
     public interface IObjectPropertyNameFormatter<T> {

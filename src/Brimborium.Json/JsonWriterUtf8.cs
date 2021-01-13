@@ -108,26 +108,34 @@ namespace Brimborium.Json {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override void EnsureCapacity(int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, appendLength);
+        public override void EnsureCapacity(int length) {
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override void EnsureCapacity(int offset, int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, appendLength);
+        public Span<byte> WriteRange(int length) {
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, length);
+            return new Span<byte>(this.buffer, this.offset, length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> GetBuffer(int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, appendLength);
-            return new Span<byte>(this.buffer, this.offset, appendLength);
+        public override void EnsureCapacity(int offset, int length) {
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, length);
+        }
+
+#if false
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> GetBuffer(int length) {
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, this.offset, length);
+            return new Span<byte>(this.buffer, this.offset, length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> GetBuffer(int offset, int appendLength) {
-            ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, appendLength);
-            return new Span<byte>(this.buffer, offset, appendLength);
+        public Span<byte> GetBuffer(int offset, int length) {
+            ByteArrayUtil.EnsureCapacity(ref this.buffer, offset, length);
+            return new Span<byte>(this.buffer, offset, length);
         }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteRaw(byte rawValue) {

@@ -9,6 +9,7 @@ using System.Text;
 using Brimborium.Json.Internal;
 
 namespace Brimborium.Json.Formatters {
+#if false
     public sealed class DTFormatter
         : IJsonFormatter<DateTime>
         , IJsonFormatterSpecReader<DateTime, JsonReaderUtf8>
@@ -35,7 +36,6 @@ namespace Brimborium.Json.Formatters {
             throw new NotImplementedException();
         }
     }
-
     public sealed class DTFormatterUtf8
         : IJsonFormatterSpecReader<DateTime, JsonReaderUtf8>
         , IJsonFormatterSpecWriter<DateTime, JsonWriterUtf8> {
@@ -47,6 +47,7 @@ namespace Brimborium.Json.Formatters {
             throw new NotImplementedException();
         }
     }
+#endif
 
     public sealed class DateTimeFormatter : IJsonFormatter<DateTime> {
         readonly string formatString;

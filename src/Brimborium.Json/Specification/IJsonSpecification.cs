@@ -33,4 +33,14 @@ namespace Brimborium.Json.Specification {
 
     public interface IValueConverter<P> { 
     }
+
+    public class JsonSpecificationBuilder : IJsonSpecificationBuilder {
+        public IJsonSerializtaionBuilder<T> AddSerializationType<T>() {
+            throw new NotImplementedException();
+        }
+
+        public JsonSpecification Build() {
+            throw new NotImplementedException();
+        }
+    }
 }

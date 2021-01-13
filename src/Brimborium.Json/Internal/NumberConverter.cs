@@ -82,7 +82,7 @@ namespace Brimborium.Json.Internal {
             }
             readCount = bytes.Length - offset;
 
-            END:
+        END:
             return unchecked(value * sign);
         }
 
@@ -115,7 +115,7 @@ namespace Brimborium.Json.Internal {
             }
             readCount = bytes.Length - offset;
 
-            END:
+        END:
             return value;
         }
 
@@ -188,64 +188,64 @@ namespace Brimborium.Json.Internal {
                                 if (num5 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 19); goto L19; }
                                 ByteArrayUtil.EnsureCapacity(ref buffer, offset, 20); goto L20;
                             }
-                            L20:
+                        L20:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 8389UL) >> 23));
                             num5 -= div * 1000;
-                            L19:
+                        L19:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 5243UL) >> 19));
                             num5 -= div * 100;
-                            L18:
+                        L18:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 6554UL) >> 16));
                             num5 -= div * 10;
-                            L17:
+                        L17:
                             buffer[offset++] = (byte)('0' + (num5));
                         }
-                        L16:
+                    L16:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 8389UL) >> 23));
                         num4 -= div * 1000;
-                        L15:
+                    L15:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 5243UL) >> 19));
                         num4 -= div * 100;
-                        L14:
+                    L14:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 6554UL) >> 16));
                         num4 -= div * 10;
-                        L13:
+                    L13:
                         buffer[offset++] = (byte)('0' + (num4));
                     }
-                    L12:
+                L12:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 8389UL) >> 23));
                     num3 -= div * 1000;
-                    L11:
+                L11:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 5243UL) >> 19));
                     num3 -= div * 100;
-                    L10:
+                L10:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 6554UL) >> 16));
                     num3 -= div * 10;
-                    L9:
+                L9:
                     buffer[offset++] = (byte)('0' + (num3));
                 }
-                L8:
+            L8:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 8389UL) >> 23));
                 num2 -= div * 1000;
-                L7:
+            L7:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 5243UL) >> 19));
                 num2 -= div * 100;
-                L6:
+            L6:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 6554UL) >> 16));
                 num2 -= div * 10;
-                L5:
+            L5:
                 buffer[offset++] = (byte)('0' + (num2));
             }
-            L4:
+        L4:
             buffer[offset++] = (byte)('0' + (div = (num1 * 8389UL) >> 23));
             num1 -= div * 1000;
-            L3:
+        L3:
             buffer[offset++] = (byte)('0' + (div = (num1 * 5243UL) >> 19));
             num1 -= div * 100;
-            L2:
+        L2:
             buffer[offset++] = (byte)('0' + (div = (num1 * 6554UL) >> 16));
             num1 -= div * 10;
-            L1:
+        L1:
             buffer[offset++] = (byte)('0' + (num1));
 
             return offset - startOffset;
@@ -274,8 +274,8 @@ namespace Brimborium.Json.Internal {
             long num1 = value, num2, num3, num4, num5, div;
 
             if (value < 0) {
-                if (value == long.MinValue) // -9223372036854775808
-                {
+                if (value == long.MinValue) {
+                    // -9223372036854775808
                     ByteArrayUtil.EnsureCapacity(ref buffer, offset, 20);
                     buffer[offset++] = (byte)'-';
                     buffer[offset++] = (byte)'9';
@@ -345,64 +345,64 @@ namespace Brimborium.Json.Internal {
                                 if (num5 < 1000) { ByteArrayUtil.EnsureCapacity(ref buffer, offset, 19); goto L19; }
                                 ByteArrayUtil.EnsureCapacity(ref buffer, offset, 20); goto L20;
                             }
-                            L20:
+                        L20:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 8389L) >> 23));
                             num5 -= div * 1000;
-                            L19:
+                        L19:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 5243L) >> 19));
                             num5 -= div * 100;
-                            L18:
+                        L18:
                             buffer[offset++] = (byte)('0' + (div = (num5 * 6554L) >> 16));
                             num5 -= div * 10;
-                            L17:
+                        L17:
                             buffer[offset++] = (byte)('0' + (num5));
                         }
-                        L16:
+                    L16:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 8389L) >> 23));
                         num4 -= div * 1000;
-                        L15:
+                    L15:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 5243L) >> 19));
                         num4 -= div * 100;
-                        L14:
+                    L14:
                         buffer[offset++] = (byte)('0' + (div = (num4 * 6554L) >> 16));
                         num4 -= div * 10;
-                        L13:
+                    L13:
                         buffer[offset++] = (byte)('0' + (num4));
                     }
-                    L12:
+                L12:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 8389L) >> 23));
                     num3 -= div * 1000;
-                    L11:
+                L11:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 5243L) >> 19));
                     num3 -= div * 100;
-                    L10:
+                L10:
                     buffer[offset++] = (byte)('0' + (div = (num3 * 6554L) >> 16));
                     num3 -= div * 10;
-                    L9:
+                L9:
                     buffer[offset++] = (byte)('0' + (num3));
                 }
-                L8:
+            L8:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 8389L) >> 23));
                 num2 -= div * 1000;
-                L7:
+            L7:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 5243L) >> 19));
                 num2 -= div * 100;
-                L6:
+            L6:
                 buffer[offset++] = (byte)('0' + (div = (num2 * 6554L) >> 16));
                 num2 -= div * 10;
-                L5:
+            L5:
                 buffer[offset++] = (byte)('0' + (num2));
             }
-            L4:
+        L4:
             buffer[offset++] = (byte)('0' + (div = (num1 * 8389L) >> 23));
             num1 -= div * 1000;
-            L3:
+        L3:
             buffer[offset++] = (byte)('0' + (div = (num1 * 5243L) >> 19));
             num1 -= div * 100;
-            L2:
+        L2:
             buffer[offset++] = (byte)('0' + (div = (num1 * 6554L) >> 16));
             num1 -= div * 10;
-            L1:
+        L1:
             buffer[offset++] = (byte)('0' + (num1));
 
             return offset - startOffset;
@@ -439,9 +439,9 @@ namespace Brimborium.Json.Internal {
                 throw new InvalidOperationException("value is not boolean.");
             }
 
-            ERROR_TRUE:
+        ERROR_TRUE:
             throw new InvalidOperationException("value is not boolean(true).");
-            ERROR_FALSE:
+        ERROR_FALSE:
             throw new InvalidOperationException("value is not boolean(false).");
         }
     }

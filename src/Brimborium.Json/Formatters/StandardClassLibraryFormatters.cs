@@ -274,8 +274,8 @@ namespace Brimborium.Json.Formatters
 
     public sealed class DecimalFormatter 
         : IJsonFormatter<decimal>
-        , IJsonFormatterSpecWriter<decimal, JsonWriterUtf8>
-        , IJsonFormatterSpecReader<decimal, JsonReaderUtf8>
+        , IJsonSerializer<decimal, JsonWriterUtf8>
+        , IJsonDeserializer<decimal, JsonReaderUtf8>
     {
         public static readonly IJsonFormatter<decimal> Default = new DecimalFormatter();
 
@@ -293,23 +293,23 @@ namespace Brimborium.Json.Formatters
 
         public void Serialize(JsonWriter writer, decimal value, IJsonFormatterResolver formatterResolver)
         {
-            if (writer is JsonWriterUtf8 jsonWriterUtf8) {
-                ((IJsonFormatterSpecWriter<decimal, JsonWriterUtf8>)this).SerializeSpec(jsonWriterUtf8, value, formatterResolver);
-            } else { 
+            //if (writer is JsonWriterUtf8 jsonWriterUtf8) {
+            //    ((IJsonSerializer<decimal, JsonWriterUtf8>)this).SerializeSpec(jsonWriterUtf8, value, formatterResolver);
+            //} else { 
                 throw new NotSupportedException();
-            }
+            //}
         }
 
         public decimal Deserialize(JsonReader reader, IJsonFormatterResolver formatterResolver)
         {
-            if (reader is JsonReaderUtf8 jsonReaderUtf8) {
-                return ((IJsonFormatterSpecReader<decimal, JsonReaderUtf8>)this).DeserializeSpec(jsonReaderUtf8, formatterResolver);
-            } else {
+            //if (reader is JsonReaderUtf8 jsonReaderUtf8) {
+            //    return ((IJsonDeserializer<decimal, JsonReaderUtf8>)this).DeserializeSpec(jsonReaderUtf8, formatterResolver);
+            //} else {
                 throw new NotSupportedException();
-            }
+            //}
         }
 
-        void IJsonFormatterSpecWriter<decimal, JsonWriterUtf8>.SerializeSpec(JsonWriterUtf8 writer, decimal value, IJsonFormatterResolver formatterResolver) {
+        void IJsonSerializer<decimal, JsonWriterUtf8>.Serialize(JsonWriterUtf8 writer, decimal value, JsonSerializationConfiguration configuration) {
             if (serializeAsString) {
                 writer.WriteString(value.ToString(CultureInfo.InvariantCulture));
             } else {
@@ -318,12 +318,12 @@ namespace Brimborium.Json.Formatters
             }
         }
 
-        decimal IJsonFormatterSpecReader<decimal, JsonReaderUtf8>.DeserializeSpec(JsonReaderUtf8 reader, IJsonFormatterResolver formatterResolver) {
+        decimal IJsonDeserializer<decimal, JsonReaderUtf8>.Deserialize(JsonReaderUtf8 reader, JsonSerializationConfiguration configuration) {
             var token = reader.GetCurrentJsonToken();
             if (token == JsonToken.Number) {
                 var number = reader.ReadNumberSegment();
                 return decimal.Parse(StringEncoding.UTF8NoBOM.GetString(number.Array, number.Offset, number.Count), NumberStyles.Float, CultureInfo.InvariantCulture);
-            } else if (token == JsonToken.String) {
+            } else if (token == JsonToken.String && configuration.PropertyNameCaseInsensitive) {
                 return decimal.Parse(reader.ReadString(), NumberStyles.Float, CultureInfo.InvariantCulture);
             } else {
                 throw new InvalidOperationException("Invalid Json Token for DecimalFormatter:" + token);
