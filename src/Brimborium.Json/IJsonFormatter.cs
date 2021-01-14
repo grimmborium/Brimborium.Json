@@ -11,49 +11,43 @@ namespace Brimborium.Json {
     public delegate T JsonDeserializeFunc2<T>(JsonReader reader, JsonSerializationConfiguration configuration);
 
     public interface IJsonFormatter {
+    }
+    public interface IJsonFormatterWithInitialization: IJsonFormatter {
         IJsonFormatter? BindForReader(JsonSerializationConfiguration configuration) => this;
 
         IJsonFormatter? BindForWriter(JsonSerializationConfiguration configuration) => this;
     }
 
-    public interface IJsonSerializer<T> : IJsonFormatter {
-        void Serialize(JsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
-    }
+    //public interface IJsonSerializer<T> : IJsonFormatter {
+    //    void Serialize(JsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
+    //}
 
-    public interface IJsonDeserializer<T> : IJsonFormatter {
-        T Deserialize(JsonReader reader, IJsonFormatterResolver formatterResolver);
-    }
+    //public interface IJsonDeserializer<T> : IJsonFormatter {
+    //    T Deserialize(JsonReader reader, IJsonFormatterResolver formatterResolver);
+    //}
+
+    //public interface IJsonFormatter<T>
+    //    : IJsonFormatter
+    //    , IJsonSerializer<T>
+    //    , IJsonDeserializer<T> {
+    //}
 
     public interface IJsonFormatter<T>
-        : IJsonFormatter
-        , IJsonSerializer<T>
-        , IJsonDeserializer<T> {
-    }
-
-    public interface IJsonFormatterTyped<T>
         : IJsonFormatter { }
 
     public interface IJsonFormatterCommon<T>
-        : IJsonFormatterTyped<T> {
+        : IJsonFormatter<T> {
         void Serialize(JsonWriter writer, T value, JsonSerializationConfiguration configuration);
         T Deserialize(JsonReader reader, JsonSerializationConfiguration configuration);
     }
 
-    public interface IJsonSerializerUtf816<T>
-       : IJsonFormatterTyped<T> {
+    public interface IJsonFormatterUtf816<T>
+        : IJsonFormatter<T> {
         void Serialize(JsonWriterUtf8 writer, T value, JsonSerializationConfiguration configuration);
         void Serialize(JsonWriterUtf16 writer, T value, JsonSerializationConfiguration configuration);
-    }
 
-    public interface IJsonDeserializerUtf816<T>
-        : IJsonFormatterTyped<T> {
         T Deserialize(JsonReaderUtf8 reader, JsonSerializationConfiguration configuration);
         T Deserialize(JsonReaderUtf16 reader, JsonSerializationConfiguration configuration);
-    }
-
-    public interface IJsonFormatterUtf816<T>
-        : IJsonSerializerUtf816<T>
-        , IJsonDeserializerUtf816<T> {
     }
 
 
@@ -70,11 +64,11 @@ namespace Brimborium.Json {
     //}
 
 
-    public static class JsonFormatterExtensions {
-        public static string ToJsonString<T>(this IJsonFormatter<T> formatter, T value, IJsonFormatterResolver formatterResolver) {
-            var writer = new JsonWriterUtf8();
-            formatter.Serialize(writer, value, formatterResolver);
-            return writer.ToString();
-        }
-    }
+    //public static class JsonFormatterExtensions {
+    //    public static string ToJsonString<T>(this IJsonFormatter<T> formatter, T value, IJsonFormatterResolver formatterResolver) {
+    //        var writer = new JsonWriterUtf8();
+    //        formatter.Serialize(writer, value, formatterResolver);
+    //        return writer.ToString();
+    //    }
+    //}
 }

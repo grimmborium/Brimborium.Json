@@ -43,6 +43,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Formatters\AnonymousFormatter.cs" />
+    <Compile Remove="Formatters\CollectionFormatters.cs" />
+    <Compile Remove="Formatters\DateTimeFormatter.cs" />
+    <Compile Remove="Formatters\DictionaryFormatter.cs" />
+    <Compile Remove="Formatters\DynamicObjectTypeFallbackFormatter.cs" />
+    <Compile Remove="Formatters\EnumFormatter.cs" />
+    <Compile Remove="Formatters\hack.cs" />
+    <Compile Remove="Formatters\IgnoreFormatter.cs" />
+    <Compile Remove="Formatters\MultiDimentionalArrayFormatter.cs" />
+    <Compile Remove="Formatters\NullableFormatter.cs" />
+    <Compile Remove="Formatters\PrimitiveFormatter.cs" />
+    <Compile Remove="Formatters\PrimitiveObjectFormatter.cs" />
+    <Compile Remove="Formatters\StandardClassLibraryFormatters.cs" />
+    <Compile Remove="Formatters\TupleFormatter.cs" />
+    <Compile Remove="Formatters\ValueTupleFormatter.cs" />
     <Compile Remove="Resolvers\AttributeFormatterResolver.cs" />
     <Compile Remove="Resolvers\BuiltinResolver.cs" />
     <Compile Remove="Resolvers\CompositeResolver.cs" />
@@ -53,6 +68,36 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Formatters\hack.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Formatters\AnonymousFormatter.cs" />
+    <None Include="Formatters\CollectionFormatters.cs" />
+    <None Include="Formatters\DateTimeFormatter.cs" />
+    <None Include="Formatters\DictionaryFormatter.cs" />
+    <None Include="Formatters\DynamicObjectTypeFallbackFormatter.cs" />
+    <None Include="Formatters\EnumFormatter.cs" />
+    <None Include="Formatters\IgnoreFormatter.cs" />
+    <None Include="Formatters\MultiDimentionalArrayFormatter.cs" />
+    <None Include="Formatters\NullableFormatter.cs" />
+    <None Include="Formatters\PrimitiveFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveFormatter.tt</DependentUpon>
+    </None>
+    <None Include="Formatters\PrimitiveObjectFormatter.cs" />
+    <None Include="Formatters\StandardClassLibraryFormatters.cs" />
+    <None Include="Formatters\TupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TupleFormatter.tt</DependentUpon>
+    </None>
+    <None Include="Formatters\ValueTupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ValueTupleFormatter.tt</DependentUpon>
+    </None>
     <None Include="Resolvers\AttributeFormatterResolver.cs" />
     <None Include="Resolvers\BuiltinResolver.cs" />
     <None Include="Resolvers\CompositeResolver.cs" />

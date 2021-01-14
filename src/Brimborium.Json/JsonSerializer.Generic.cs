@@ -25,9 +25,7 @@ namespace Brimborium.Json {
 
             var writer = System.Threading.Interlocked.Exchange(ref _JsonWriterUtf8, null)
                 ?? new JsonWriterUtf8(MemoryPool.GetBuffer());
-            var configurationForWriter = configuration.ForSerialization(writer);
-            var serializerForT = configurationForWriter.GetSerializerWithVerify<T>();
-            serializerForT.Serialize(writer, value, configurationForWriter);
+            configuration.Serialize(writer, value);
             var result = writer.ToUtf8ByteArray();
             if (writer.ownBuffer) {
                 System.Threading.Interlocked.CompareExchange(ref _JsonWriterUtf8, writer, null);
