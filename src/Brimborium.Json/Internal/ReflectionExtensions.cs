@@ -74,23 +74,19 @@ namespace Brimborium.Json.Internal
             }
         }
 
-#if NETSTANDARD
+        //public static bool IsConstructedGenericType(this System.Reflection.TypeInfo type)
+        //{
+        //    return type.AsType().IsConstructedGenericType;
+        //}
 
-        public static bool IsConstructedGenericType(this System.Reflection.TypeInfo type)
-        {
-            return type.AsType().IsConstructedGenericType;
-        }
+        //public static MethodInfo GetGetMethod(this PropertyInfo propInfo)
+        //{
+        //    return propInfo.GetMethod;
+        //}
 
-        public static MethodInfo GetGetMethod(this PropertyInfo propInfo)
-        {
-            return propInfo.GetMethod;
-        }
-
-        public static MethodInfo GetSetMethod(this PropertyInfo propInfo)
-        {
-            return propInfo.SetMethod;
-        }
-
-#endif
+        //public static MethodInfo GetSetMethod(this PropertyInfo propInfo)
+        //{
+        //    return propInfo.SetMethod;
+        //}
     }
 }

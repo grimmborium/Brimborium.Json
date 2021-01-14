@@ -7,6 +7,7 @@ using System.Collections.Generic;
 namespace Brimborium.Json {
     public class JsonSerializationConfigurationBuilder {
         private JsonSerializationConfigurationState _State;
+        public bool AddDefaultResolversAndFormatters { get { return this._State.AddDefaultResolversAndFormatters; } set { this._State.AddDefaultResolversAndFormatters = value; } }
         public Func<string, string> PropertyNameMutator { get { return this._State.PropertyNameMutator; } set { this._State.PropertyNameMutator = value; } }
         // public bool AllowTrailingCommas { get; set; }
         // public JsonCommentHandling CommentHandling { get; set; }
@@ -18,12 +19,11 @@ namespace Brimborium.Json {
 
         public JsonSerializationConfigurationBuilder() {
             this._State = new JsonSerializationConfigurationState(
+                addDefaultResolversAndFormatters: true,
                 propertyNameMutator: StringMutator.Original,
                 numberHandling: JsonNumberHandling.Strict,
                 propertyNameCaseInsensitive: false
                 );
-            this.Resolvers.AddRange(BuiltinResolvers.GetResolvers());
-            this.Formatters.AddRange(BuiltinResolvers.GetFormatters());
         }
 
         public JsonSerializationConfigurationBuilder WithPropertyNameMutator(string propertyNameMutator) {
@@ -42,6 +42,7 @@ namespace Brimborium.Json {
     }
 
     public struct JsonSerializationConfigurationState {
+        public bool AddDefaultResolversAndFormatters { get; set; }
         public Func<string, string> PropertyNameMutator { get; set; }
         // public bool AllowTrailingCommas { get; set; }
         // public JsonCommentHandling CommentHandling { get; set; }
@@ -52,12 +53,14 @@ namespace Brimborium.Json {
         public readonly List<IJsonFormatter> Formatters;
 
         public JsonSerializationConfigurationState(
-             Func<string, string> propertyNameMutator,
+                bool addDefaultResolversAndFormatters,
+                Func<string, string> propertyNameMutator,
                 // bool allowTrailingCommas,
                 // JsonCommentHandling commentHandling,
                 JsonNumberHandling numberHandling,
                 bool propertyNameCaseInsensitive
             ) {
+            AddDefaultResolversAndFormatters = addDefaultResolversAndFormatters;
             PropertyNameMutator = propertyNameMutator;
             NumberHandling = numberHandling;
             PropertyNameCaseInsensitive = propertyNameCaseInsensitive;

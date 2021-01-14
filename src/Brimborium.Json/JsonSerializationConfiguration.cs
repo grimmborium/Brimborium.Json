@@ -86,37 +86,30 @@ namespace Brimborium.Json {
         private static int _Count;
 
         public readonly int Instance;
+
+        public readonly bool AddDefaultResolversAndFormatters;
         public readonly Func<string, string> PropertyNameMutator;
         // private readonly bool AllowTrailingCommas;
         // private readonly JsonCommentHandling CommentHandling;
         public readonly JsonNumberHandling NumberHandling;
         public readonly bool PropertyNameCaseInsensitive;
 
-        internal readonly List<IJsonFormatterResolver> Resolvers;
-        internal readonly List<IJsonFormatter> Formatters;
-
         protected JsonSerializationConfiguration(
                 JsonSerializationConfigurationState state
             ) {
             this.Instance = System.Threading.Interlocked.Increment(ref _Count);
+            this.AddDefaultResolversAndFormatters = state.AddDefaultResolversAndFormatters;
             this.PropertyNameMutator = state.PropertyNameMutator;
             this.NumberHandling = state.NumberHandling;
             this.PropertyNameCaseInsensitive = state.PropertyNameCaseInsensitive;
-            this.Formatters = new List<IJsonFormatter>();
-            this.Formatters.AddRange(state.Formatters);
-            this.Resolvers = new List<IJsonFormatterResolver>();
-            this.Resolvers.AddRange(state.Resolvers);
         }
 
-        protected JsonSerializationConfiguration(JsonSerializationConfiguration configuration) {
+        protected JsonSerializationConfiguration(JsonSerializationConfigurationRoot configuration) {
             this.Instance = System.Threading.Interlocked.Increment(ref _Count);
+            this.AddDefaultResolversAndFormatters = configuration.AddDefaultResolversAndFormatters;
             this.PropertyNameMutator = configuration.PropertyNameMutator;
             this.NumberHandling = configuration.NumberHandling;
             this.PropertyNameCaseInsensitive = configuration.PropertyNameCaseInsensitive;
-            this.Formatters = new List<IJsonFormatter>();
-            this.Formatters.AddRange(configuration.Formatters);
-            this.Resolvers = new List<IJsonFormatterResolver>();
-            this.Resolvers.AddRange(configuration.Resolvers);
         }
 
         //public virtual Type? GetReaderType() => null;
@@ -169,9 +162,18 @@ namespace Brimborium.Json {
             return result;
         }
 
+        internal readonly List<IJsonFormatterResolver> Resolvers;
+        internal readonly List<IJsonFormatter> Formatters;
+
         public JsonSerializationConfigurationRoot(
             JsonSerializationConfigurationState state
             ) : base(state) {
+
+            this.Formatters = new List<IJsonFormatter>();
+            this.Resolvers = new List<IJsonFormatterResolver>();
+
+            this.Formatters.AddRange(state.Formatters);
+            this.Resolvers.AddRange(state.Resolvers);
         }
 
         private JsonDeserializerConfigurationUtf8? _CfgJsonReaderUtf8;
@@ -180,59 +182,59 @@ namespace Brimborium.Json {
         private JsonSerializerConfigurationUtf16? _CfgJsonWriterUtf16;
 
         public override JsonDeserializerConfigurationUtf8 ForDeserializationUtf8() {
-            if (_CfgJsonReaderUtf8 is null) {
+            if (this._CfgJsonReaderUtf8 is null) {
                 lock (this) {
-                    if (_CfgJsonReaderUtf8 is null) {
+                    if (this._CfgJsonReaderUtf8 is null) {
                         var cfg = new JsonDeserializerConfigurationUtf8(this);
                         cfg.Init();
-                        _CfgJsonReaderUtf8 = cfg;
+                        this._CfgJsonReaderUtf8 = cfg;
                         System.Threading.Interlocked.MemoryBarrier();
                     }
                 }
             }
-            return _CfgJsonReaderUtf8;
+            return this._CfgJsonReaderUtf8;
         }
 
         public override JsonDeserializerConfigurationUtf16 ForDeserializationUtf16() {
-            if (_CfgJsonReaderUtf16 is null) {
+            if (this._CfgJsonReaderUtf16 is null) {
                 lock (this) {
-                    if (_CfgJsonReaderUtf16 is null) {
+                    if (this._CfgJsonReaderUtf16 is null) {
                         var cfg = new JsonDeserializerConfigurationUtf16(this);
                         cfg.Init();
-                        _CfgJsonReaderUtf16 = cfg;
+                        this._CfgJsonReaderUtf16 = cfg;
                         System.Threading.Interlocked.MemoryBarrier();
                     }
                 }
             }
-            return _CfgJsonReaderUtf16;
+            return this._CfgJsonReaderUtf16;
         }
 
         public override JsonSerializerConfigurationUtf8 ForSerializationUtf8() {
-            if (_CfgJsonWriterUtf8 is null) {
+            if (this._CfgJsonWriterUtf8 is null) {
                 lock (this) {
-                    if (_CfgJsonWriterUtf8 is null) {
+                    if (this._CfgJsonWriterUtf8 is null) {
                         var cfg = new JsonSerializerConfigurationUtf8(this);
                         cfg.Init();
-                        _CfgJsonWriterUtf8 = cfg;
+                        this._CfgJsonWriterUtf8 = cfg;
                         System.Threading.Interlocked.MemoryBarrier();
                     }
                 }
             }
-            return _CfgJsonWriterUtf8;
+            return this._CfgJsonWriterUtf8;
         }
 
         public override JsonSerializerConfigurationUtf16 ForSerializationUtf16() {
-            if (_CfgJsonWriterUtf16 is null) {
+            if (this._CfgJsonWriterUtf16 is null) {
                 lock (this) {
-                    if (_CfgJsonWriterUtf16 is null) {
+                    if (this._CfgJsonWriterUtf16 is null) {
                         var cfg = new JsonSerializerConfigurationUtf16(this);
                         cfg.Init();
-                        _CfgJsonWriterUtf16 = cfg;
+                        this._CfgJsonWriterUtf16 = cfg;
                         System.Threading.Interlocked.MemoryBarrier();
                     }
                 }
             }
-            return _CfgJsonWriterUtf16;
+            return this._CfgJsonWriterUtf16;
         }
 
         public override void Serialize<T>(JsonWriter writer, [AllowNull] T value) {
@@ -268,38 +270,75 @@ namespace Brimborium.Json {
             => this.ForDeserializationUtf16().Deserialize<T>(reader);
     }
 
-    public abstract class JsonDeserializerConfiguration<TForJsonReader>
-        : JsonSerializationConfiguration
-        where TForJsonReader : JsonReader {
+    public abstract class JsonDeserializerConfigurationWithInitialization
+        : JsonSerializationConfiguration {
         protected readonly JsonSerializationConfigurationRoot _ConfigurationRoot;
 
-        protected JsonDeserializerConfiguration(
+
+        protected IJsonFormatterResolver[] Resolvers;
+
+        protected JsonDeserializerConfigurationWithInitialization(
                 JsonSerializationConfigurationRoot configurationRoot
             ) : base(configurationRoot) {
             this._ConfigurationRoot = configurationRoot;
+            this.Resolvers = System.Array.Empty<IJsonFormatterResolver>();
+
+            //this.Resolvers = new List<IJsonFormatterResolver>();
         }
 
-        public void Init() {
-            foreach (var resolver in this._ConfigurationRoot.Resolvers) {
-                if (resolver is IJsonFormatterResolverWithInitialization withInitialization) {
-                    var boundResolver = withInitialization.BindForReader(this);
-                    if (boundResolver is object) {
-                        this.Resolvers.Add(boundResolver);
-                        continue;
-                    }
+        internal void Init() {
+            List<IJsonFormatterResolver> lstResolvers = new List<IJsonFormatterResolver>();
+            List<IJsonFormatter> lstFormatters = new List<IJsonFormatter>();
+
+
+            foreach (var resolver in BuiltinResolvers.GetResolvers()) {
+                AddResolver(resolver);
+            }
+            if (this.AddDefaultResolversAndFormatters) {
+                foreach (var resolver in JsonSerializer.DefaultJsonFormatterResolvers) {
+                    AddResolver(resolver);
                 }
-                this.Resolvers.Add(resolver);
+            }
+            foreach (var resolver in this._ConfigurationRoot.Resolvers) {
+                AddResolver(resolver);
+            }
+
+            var posTypedFormatterResolver = lstResolvers.Count;
+
+            foreach (var formatter in BuiltinResolvers.GetFormatters()) {
+                AddFormater(formatter);
+            }
+            if (this.AddDefaultResolversAndFormatters) {
+                foreach (var formatter in JsonSerializer.DefaultJsonFormatters) {
+                    AddFormater(formatter);
+                }
             }
             foreach (var formatter in this._ConfigurationRoot.Formatters) {
-                if (formatter is IJsonFormatterWithInitialization withInitialization) {
-                    var boundFormatter = withInitialization.BindForReader(this);
-                    if (boundFormatter is object) {
-                        this.Formatters.Add(boundFormatter);
-                        continue;
-                    }
+                AddFormater(formatter);
+            }
+
+            // done
+            var jsonTypedFormatterResolver = new JsonTypedFormatterResolver(lstFormatters);
+            lstResolvers.Insert(posTypedFormatterResolver, jsonTypedFormatterResolver);
+            this.Resolvers = lstResolvers.ToArray();
+
+
+            void AddResolver(IJsonFormatterResolver resolver) {
+                if (resolver is IJsonFormatterResolverWithInitialization resolverWithInitialization) {
+                    var boundResolver = resolverWithInitialization.BindConfiguration(this);
+                    lstResolvers.Add(boundResolver);
+                } else {
+                    lstResolvers.Add(resolver);
                 }
-                this.Formatters.Add(formatter);
-#warning here Formatters
+            }
+
+            void AddFormater(IJsonFormatter formatter) {
+                if (formatter is IJsonFormatterWithInitialization formatterWithInitialization) {
+                    var boundFormatter = formatterWithInitialization.BindConfiguration(this);
+                    lstFormatters.Add(boundFormatter);
+                } else {
+                    lstFormatters.Add(formatter);
+                }
             }
         }
 
@@ -310,7 +349,8 @@ namespace Brimborium.Json {
 
     }
 
-    public sealed class JsonDeserializerConfigurationUtf8 : JsonDeserializerConfiguration<JsonReaderUtf8> {
+    public sealed class JsonDeserializerConfigurationUtf8
+        : JsonDeserializerConfigurationWithInitialization {
         internal JsonDeserializerConfigurationUtf8(
                 JsonSerializationConfigurationRoot configurationRoot
             ) : base(configurationRoot) {
@@ -328,7 +368,8 @@ namespace Brimborium.Json {
         }
     }
 
-    public sealed class JsonDeserializerConfigurationUtf16 : JsonDeserializerConfiguration<JsonReaderUtf16> {
+    public sealed class JsonDeserializerConfigurationUtf16
+        : JsonDeserializerConfigurationWithInitialization {
         internal JsonDeserializerConfigurationUtf16(
                 JsonSerializationConfigurationRoot configurationRoot
             ) : base(configurationRoot) {
@@ -346,40 +387,8 @@ namespace Brimborium.Json {
         }
     }
 
-    public abstract class JsonSerializerConfiguration<TForJsonWriter>
-        : JsonSerializationConfiguration
-        where TForJsonWriter : JsonWriter {
-        private readonly JsonSerializationConfigurationRoot _ConfigurationRoot;
-
-        protected JsonSerializerConfiguration(
-                JsonSerializationConfigurationRoot configurationRoot
-            ) : base(configurationRoot) {
-            this._ConfigurationRoot = configurationRoot;
-        }
-
-        public void Init() {
-            foreach (var resolver in this._ConfigurationRoot.Resolvers) {
-                var boundResolver = resolver.BindForWriter(this);
-                if (boundResolver is object) {
-                    this.Resolvers.Add(boundResolver);
-                }
-            }
-            foreach (var formatter in this._ConfigurationRoot.Formatters) {
-                var boundFormatter = formatter.BindForWriter(this);
-#warning here Formatters
-                if (boundFormatter is object) {
-                    this.Formatters.Add(boundFormatter);
-                }
-            }
-        }
-
-        public override JsonDeserializerConfigurationUtf8 ForDeserializationUtf8() => this._ConfigurationRoot.ForDeserializationUtf8();
-        public override JsonDeserializerConfigurationUtf16 ForDeserializationUtf16() => this._ConfigurationRoot.ForDeserializationUtf16();
-        public override JsonSerializerConfigurationUtf8 ForSerializationUtf8() => this._ConfigurationRoot.ForSerializationUtf8();
-        public override JsonSerializerConfigurationUtf16 ForSerializationUtf16() => this._ConfigurationRoot.ForSerializationUtf16();
-    }
-
-    public sealed class JsonSerializerConfigurationUtf8 : JsonSerializerConfiguration<JsonWriterUtf8> {
+    public sealed class JsonSerializerConfigurationUtf8
+        : JsonDeserializerConfigurationWithInitialization {
         internal JsonSerializerConfigurationUtf8(
                 JsonSerializationConfigurationRoot configurationRoot
             ) : base(configurationRoot) {
@@ -403,7 +412,8 @@ namespace Brimborium.Json {
         }
     }
 
-    public sealed class JsonSerializerConfigurationUtf16 : JsonSerializerConfiguration<JsonWriterUtf16> {
+    public sealed class JsonSerializerConfigurationUtf16
+        : JsonDeserializerConfigurationWithInitialization {
         internal JsonSerializerConfigurationUtf16(
                 JsonSerializationConfigurationRoot configurationRoot
             ) : base(configurationRoot) {
@@ -426,38 +436,4 @@ namespace Brimborium.Json {
             base.Serialize<T>(writer, value);
         }
     }
-
-
-
-    /*
-    public class JsonSerializationConfigurationSpecWriter<TJsonWriter>
-        where TJsonWriter : JsonWriter {
-        public JsonSerializationConfigurationSpecWriter() : base() { }
-    }
-
-    public class JsonSerializationConfigurationSpecReader<TJsonReader>
-        where TJsonReader : JsonReader {
-        public JsonSerializationConfigurationSpecReader() : base() { }
-    }
-    */
-    /*
-     * 
-     public interface IJsonFormatterSpecWriter<T, TJsonWriter>
-        : IJsonFormatter
-        where TJsonWriter : JsonWriter{
-        void SerializeSpec(TJsonWriter writer, T value, IJsonFormatterResolver formatterResolver);
-    }
-    public interface IJsonFormatterSpecReader<T, TJsonReader>
-        : IJsonFormatter
-        where TJsonReader : JsonReader {
-        T DeserializeSpec(TJsonReader reader, IJsonFormatterResolver formatterResolver);
-    }* 
-
-         public interface IJsonFormatterSpecReader<T, TJsonReader>
-        : IJsonFormatter
-        where TJsonReader : JsonReader {
-        T DeserializeSpec(TJsonReader reader, IJsonFormatterResolver formatterResolver);
-    }
-
-     */
 }

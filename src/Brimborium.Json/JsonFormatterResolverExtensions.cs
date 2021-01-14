@@ -1,38 +1,8 @@
 ﻿#nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 namespace Brimborium.Json {
-    public interface IJsonFormatterResolver {
-        IJsonFormatter<T> GetFormatter<T>();
-    }
-
-    public interface IJsonFormatterResolverWithInitialization {
-        IJsonFormatterResolver? BindForReader(JsonSerializationConfiguration configuration) => this;
-        IJsonFormatterResolver? BindForWriter(JsonSerializationConfiguration configuration) => this;
-    }
-
-
-    //public interface IJsonSerializerResolverCommon {
-    //    IJsonSerializer<T> GetSerializerCommon<T>(JsonSerializationConfiguration configuration);
-    //}
-
-    //public interface IJsonDeserializerResolverCommon {
-    //    IJsonDeserializer<T> GetDeserializerCommon<T>(JsonSerializationConfiguration configuration);
-    //}
-
-    //public interface IJsonDeserializerResolver<TJsonReader>
-    //        where TJsonReader : JsonReader {
-    //    IJsonDeserializer<T, TJsonReader> GetJsonDeserializer<T>(JsonSerializationConfiguration configuration);
-    //}
-
-    //public interface IJsonSerializerResolver<TJsonWriter>
-    //        where TJsonWriter : JsonWriter {
-    //    IJsonSerializer<T, TJsonWriter> GetJsonSerializer<T>(JsonSerializationConfiguration configuration);
-    //}
-
     public static class JsonFormatterResolverExtensions {
         /*
         public static IJsonSerializer<T, TJsonWriter> GetSerializerWithVerify<T, TJsonWriter>(this JsonSerializationConfiguration configuration)
@@ -103,11 +73,6 @@ namespace Brimborium.Json {
             //return formatter;
 #warning Remove GetFormatterDynamic
             throw new NotImplementedException();
-        }
-    }
-
-    public class FormatterNotRegisteredException : Exception {
-        public FormatterNotRegisteredException(string message) : base(message) {
         }
     }
 }

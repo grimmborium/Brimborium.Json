@@ -55,6 +55,11 @@ namespace Brimborium.Json {
         internal byte[] buffer;
         internal int offset;
 
+
+        public void Reset() {
+            this.offset = 0;
+        }
+
         public override int CurrentOffset {
             get {
                 return this.offset;
@@ -145,13 +150,10 @@ namespace Brimborium.Json {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void WriteRaw(byte[] rawValue) {
-#if NETSTANDARD
-            UnsafeMemory.WriteRaw(this, rawValue);
-#else
-            BinaryUtil.EnsureCapacity(ref buffer, offset, rawValue.Length);
-            Buffer.BlockCopy(rawValue, 0, buffer, offset, rawValue.Length);
-            offset += rawValue.Length;
-#endif
+            ByteArrayUtil.EnsureCapacity(ref buffer, this.offset, rawValue.Length);
+            //Buffer.BlockCopy(rawValue, 0, buffer, offset, rawValue.Length);
+            rawValue.AsSpan().CopyTo(buffer.AsSpan(this.offset, rawValue.Length));
+            this.offset += rawValue.Length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

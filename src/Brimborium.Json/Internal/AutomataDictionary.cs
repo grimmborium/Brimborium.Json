@@ -9,7 +9,10 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 using Brimborium.Json;
+
+#if emit
 using Brimborium.Json.Internal.Emit;
+#endif
 
 namespace Brimborium.Json.Internal {
     // Key = long, Value = int for UTF8String Dictionary
@@ -167,10 +170,11 @@ namespace Brimborium.Json.Internal {
         }
 
         // IL Emit
-
+#if emit
         public void EmitMatch(ILGenerator il, LocalBuilder p, LocalBuilder rest, LocalBuilder key, Action<KeyValuePair<string, int>> onFound, Action onNotFound) {
             root.EmitSearchNext(il, p, rest, key, onFound, onNotFound);
         }
+#endif
 
         class AutomataNode : IComparable<AutomataNode> {
             static readonly AutomataNode[] emptyNodes = new AutomataNode[0];
@@ -294,7 +298,7 @@ namespace Brimborium.Json.Internal {
                     yield return nexts[i];
                 }
             }
-
+#if emit
             // SearchNext(ref byte* p, ref int rest, ref ulong key)
             public void EmitSearchNext(ILGenerator il, LocalBuilder p, LocalBuilder rest, LocalBuilder key, Action<KeyValuePair<string, int>> onFound, Action onNotFound) {
                 // key = AutomataKeyGen.GetKey(ref p, ref rest);
@@ -392,6 +396,7 @@ namespace Brimborium.Json.Internal {
                     EmitSearchNextCore(il, p, rest, key, onFound, onNotFound, r, r.Length);
                 }
             }
+#endif
         }
     }
 

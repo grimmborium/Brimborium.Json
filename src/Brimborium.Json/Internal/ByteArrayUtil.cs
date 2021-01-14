@@ -68,6 +68,7 @@ namespace Brimborium.Json.Internal {
             if (array2.Length != newSize) {
                 byte[] array3 = new byte[newSize];
                 Buffer.BlockCopy(array2, 0, array3, 0, (array2.Length > newSize) ? newSize : array2.Length);
+#warning use span
                 array = array3;
             }
         }
@@ -84,6 +85,7 @@ namespace Brimborium.Json.Internal {
                 throw new ArgumentOutOfRangeException("newSize");
             }
 
+#warning remove this
             if (src.Length < newSize) {
                 throw new ArgumentException("length < newSize");
             }
@@ -93,6 +95,8 @@ namespace Brimborium.Json.Internal {
             }
 
             byte[] dst = new byte[newSize];
+
+#warning use span
 
 #if NETSTANDARD && !NET45
             fixed (byte* pSrc = &src[0])

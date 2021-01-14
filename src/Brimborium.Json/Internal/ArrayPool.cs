@@ -34,9 +34,29 @@ namespace Brimborium.Json.Internal {
             }
         }
 
-        public void Return(T[] array) {
-            if (array.Length == _BufferLength) {
+        public T[] Rent(int bufferLength) {
+            if (bufferLength < this._BufferLength) {
+                return this.Rent();
+            } else {
+                lock (this._Buffers) {
+                    if (_Buffers.Count == 0) {
+                        return new T[bufferLength];
+                    } else {
+                        var idx = this._Buffers.Count - 1;
+                        var result = this._Buffers[idx];
+                        if (result.Length >= bufferLength) {
+                            this._Buffers.RemoveAt(idx);
+                            return result;
+                        } else {
+                            return new T[bufferLength];
+                        }
+                    }
+                }
+            }
+        }
 
+        public void Return(T[] array) {
+            if (array.Length == _BufferLength && this._Buffers.Count<8) {
                 lock (this._Buffers) {
                     this._Buffers.Add(array);
                 }

@@ -43,7 +43,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Formatters\AnonymousFormatter.cs" />
     <Compile Remove="Formatters\CollectionFormatters.cs" />
     <Compile Remove="Formatters\DateTimeFormatter.cs" />
     <Compile Remove="Formatters\DictionaryFormatter.cs" />
@@ -58,6 +57,13 @@
     <Compile Remove="Formatters\StandardClassLibraryFormatters.cs" />
     <Compile Remove="Formatters\TupleFormatter.cs" />
     <Compile Remove="Formatters\ValueTupleFormatter.cs" />
+    <Compile Remove="Internal\Emit\DynamicAssembly.cs" />
+    <Compile Remove="Internal\Emit\ExpressionUtility.cs" />
+    <Compile Remove="Internal\Emit\ILGeneratorExtensions.cs" />
+    <Compile Remove="Internal\Emit\ILViewer.cs" />
+    <Compile Remove="Internal\Emit\MetaMember.cs" />
+    <Compile Remove="Internal\Emit\MetaType.cs" />
+    <Compile Remove="JsonSerializer.NonGeneric.cs" />
     <Compile Remove="Resolvers\AttributeFormatterResolver.cs" />
     <Compile Remove="Resolvers\BuiltinResolver.cs" />
     <Compile Remove="Resolvers\CompositeResolver.cs" />
@@ -72,7 +78,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Formatters\AnonymousFormatter.cs" />
     <None Include="Formatters\CollectionFormatters.cs" />
     <None Include="Formatters\DateTimeFormatter.cs" />
     <None Include="Formatters\DictionaryFormatter.cs" />
@@ -98,6 +103,13 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ValueTupleFormatter.tt</DependentUpon>
     </None>
+    <None Include="Internal\Emit\DynamicAssembly.cs" />
+    <None Include="Internal\Emit\ExpressionUtility.cs" />
+    <None Include="Internal\Emit\ILGeneratorExtensions.cs" />
+    <None Include="Internal\Emit\ILViewer.cs" />
+    <None Include="Internal\Emit\MetaMember.cs" />
+    <None Include="Internal\Emit\MetaType.cs" />
+    <None Include="JsonSerializer.NonGeneric.cs" />
     <None Include="Resolvers\AttributeFormatterResolver.cs" />
     <None Include="Resolvers\BuiltinResolver.cs" />
     <None Include="Resolvers\CompositeResolver.cs" />
