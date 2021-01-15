@@ -17,18 +17,17 @@ namespace Brimborium.Json.Resolvers {
                 var formatterTypeArgument = GetIJsonFormatterArgument(formatterType);
                 if (formatterTypeArgument is null) {
                 } else {
-                    if (dict.TryAdd(formatterTypeArgument, formatter)) {
-                        //OK
-                    } else {
-                        dict.TryGetValue(formatterTypeArgument, out var oldFormatter);
+                    if (dict.TryGetValue(formatterTypeArgument, out var oldFormatter)) {
                         throw new FormatterDuplicatedRegisteredException($"old: {oldFormatter?.GetType().FullName}; new: {formatter.GetType().FullName};");
+                    } else {
+                        dict.Add(formatterTypeArgument, formatter);
                     }
                 }
             }
             this._TypeToFormatter = dict;
         }
 
-        public IJsonFormatter<T> GetFormatter<T>() {
+        public IJsonFormatter<T> GetFormatter<T>(JsonSerializationConfiguration configuration) {
             if (this._TypeToFormatter.TryGetValue(typeof(T), out var formatter)) {
                 return (IJsonFormatter<T>)formatter;
             } else { 

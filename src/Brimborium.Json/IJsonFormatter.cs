@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Brimborium.Json {
-    
+
     public delegate void JsonSerializeActionCommon<T>(JsonWriter writer, T value, JsonSerializationConfiguration configuration);
     public delegate void JsonSerializeActionUtf8<T>(JsonWriterUtf8 writer, T value, JsonSerializationConfiguration configuration);
     public delegate void JsonSerializeActionUtf16<T>(JsonWriterUtf16 writer, T value, JsonSerializationConfiguration configuration);
@@ -16,8 +17,8 @@ namespace Brimborium.Json {
         IJsonFormatter BindConfiguration(JsonSerializationConfiguration configuration);
     }
 
-      public interface IJsonFormatter<T>
-        : IJsonFormatter { }
+    public interface IJsonFormatter<T>
+      : IJsonFormatter { }
 
     public interface IJsonFormatterCommon<T>
         : IJsonFormatter<T> {
@@ -41,9 +42,12 @@ namespace Brimborium.Json {
     }
 
     public interface IJsonFormatterResolver {
-        IJsonFormatter<T> GetFormatter<T>();
+        IJsonFormatter<T> GetFormatter<T>(JsonSerializationConfiguration configuration);
     }
 
+    public interface IJsonFormatterResolverStatic : IJsonFormatterResolver {
+        IEnumerable<IJsonFormatter> GetFormatters(JsonSerializationConfiguration configuration);
+    }
     public interface IJsonFormatterResolverWithInitialization : IJsonFormatterResolver {
         IJsonFormatterResolver BindConfiguration(JsonSerializationConfiguration configuration);
     }

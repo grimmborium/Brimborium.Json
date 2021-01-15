@@ -9,7 +9,7 @@ namespace Brimborium.Json.Internal {
             var size = StringEncoding.UTF8NoBOM.GetByteCount(text);
             Buffer16 = text.ToCharArray();
             Buffer8 = new byte[size];
-            StringEncoding.UTF8NoBOM.GetBytes(Buffer16.AsSpan(), Buffer8.AsSpan());
+            StringEncoding.GetBytes(Buffer16, Buffer8);
         }
 
         public Span<byte> AsSpan8() {

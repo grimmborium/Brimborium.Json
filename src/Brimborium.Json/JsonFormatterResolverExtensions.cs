@@ -46,10 +46,10 @@ namespace Brimborium.Json {
             return jsonDeserializer;
         }
         */
-        public static IJsonFormatter<T> GetFormatterWithVerify<T>(this IJsonFormatterResolver resolver) {
+        public static IJsonFormatter<T> GetFormatterWithVerify<T>(this IJsonFormatterResolver resolver, JsonSerializationConfiguration configuration) {
             IJsonFormatter<T> formatter;
             try {
-                formatter = resolver.GetFormatter<T>();
+                formatter = resolver.GetFormatter<T>(configuration);
             } catch (TypeInitializationException ex) {
                 Exception inner = ex;
                 while (inner.InnerException != null) {

@@ -299,11 +299,13 @@ namespace Brimborium.Json {
                     AddResolver(resolver);
                 }
             }
+
+            var posTypedFormatterResolver = lstResolvers.Count;
+
             foreach (var resolver in this._ConfigurationRoot.Resolvers) {
                 AddResolver(resolver);
             }
 
-            var posTypedFormatterResolver = lstResolvers.Count;
 
             foreach (var formatter in BuiltinResolvers.GetFormatters()) {
                 AddFormater(formatter);
@@ -324,7 +326,10 @@ namespace Brimborium.Json {
 
 
             void AddResolver(IJsonFormatterResolver resolver) {
-                if (resolver is IJsonFormatterResolverWithInitialization resolverWithInitialization) {
+                if (resolver is IJsonFormatterResolverStatic resolverStatic) {
+                    var formatters = resolverStatic.GetFormatters(this);
+                    lstFormatters.AddRange(formatters);
+                } else if (resolver is IJsonFormatterResolverWithInitialization resolverWithInitialization) {
                     var boundResolver = resolverWithInitialization.BindConfiguration(this);
                     lstResolvers.Add(boundResolver);
                 } else {
