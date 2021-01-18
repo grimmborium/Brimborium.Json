@@ -1,5 +1,5 @@
 ﻿#nullable enable
-#if no
+
 using Brimborium.Json.Internal;
 using Brimborium.Json.Resolvers;
 
@@ -260,4 +260,3 @@ namespace Brimborium.Json {
         }
     }
 }
-#endif

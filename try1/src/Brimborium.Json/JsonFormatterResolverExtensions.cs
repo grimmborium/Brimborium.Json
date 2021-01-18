@@ -1,5 +1,5 @@
 ﻿#nullable enable
-#if no
+
 using System;
 
 namespace Brimborium.Json {
@@ -76,4 +76,3 @@ namespace Brimborium.Json {
         }
     }
 }
-#endif

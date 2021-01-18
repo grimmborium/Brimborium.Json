@@ -1,0 +1,175 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
+
+    <LangVersion>9.0</LangVersion>
+
+    <Nullable>enable</Nullable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU' AND '$(TargetFramework)'=='NET472'">
+    <Nullable>annotations</Nullable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;NET47;AllowUnsafeBlocks</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU' AND '$(TargetFramework)'!='NET472'">
+    <Nullable>enable</Nullable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;AllowUnsafeBlocks</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU' AND '$(TargetFramework)'=='NET472'">
+    <Nullable>annotations</Nullable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>RELEASE;NETSTANDARD;NETSTANDARD2_0;NET47;AllowUnsafeBlocks</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU' AND '$(TargetFramework)'!='NET472'">
+    <Nullable>enable</Nullable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <DefineConstants>RELEASE;NETSTANDARD;NETSTANDARD2_0;AllowUnsafeBlocks</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Formatters\CollectionFormatters.cs" />
+    <Compile Remove="Formatters\DateTimeFormatter.cs" />
+    <Compile Remove="Formatters\DictionaryFormatter.cs" />
+    <Compile Remove="Formatters\DynamicObjectTypeFallbackFormatter.cs" />
+    <Compile Remove="Formatters\EnumFormatter.cs" />
+    <Compile Remove="Formatters\hack.cs" />
+    <Compile Remove="Formatters\IgnoreFormatter.cs" />
+    <Compile Remove="Formatters\MultiDimentionalArrayFormatter.cs" />
+    <Compile Remove="Formatters\NullableFormatter.cs" />
+    <Compile Remove="Formatters\PrimitiveFormatter.cs" />
+    <Compile Remove="Formatters\PrimitiveObjectFormatter.cs" />
+    <Compile Remove="Formatters\StandardClassLibraryFormatters.cs" />
+    <Compile Remove="Formatters\TupleFormatter.cs" />
+    <Compile Remove="Formatters\ValueTupleFormatter.cs" />
+    <Compile Remove="Internal\Emit\DynamicAssembly.cs" />
+    <Compile Remove="Internal\Emit\ExpressionUtility.cs" />
+    <Compile Remove="Internal\Emit\ILGeneratorExtensions.cs" />
+    <Compile Remove="Internal\Emit\ILViewer.cs" />
+    <Compile Remove="Internal\Emit\MetaMember.cs" />
+    <Compile Remove="Internal\Emit\MetaType.cs" />
+    <Compile Remove="JsonSerializer.NonGeneric.cs" />
+    <Compile Remove="Resolvers\AttributeFormatterResolver.cs" />
+    <Compile Remove="Resolvers\BuiltinResolver.cs" />
+    <Compile Remove="Resolvers\CompositeResolver.cs" />
+    <Compile Remove="Resolvers\DynamicGenericResolver.cs" />
+    <Compile Remove="Resolvers\DynamicObjectResolver.cs" />
+    <Compile Remove="Resolvers\EnumResolver.cs" />
+    <Compile Remove="Resolvers\StandardResolver.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Formatters\hack.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Formatters\CollectionFormatters.cs" />
+    <None Include="Formatters\DateTimeFormatter.cs" />
+    <None Include="Formatters\DictionaryFormatter.cs" />
+    <None Include="Formatters\DynamicObjectTypeFallbackFormatter.cs" />
+    <None Include="Formatters\EnumFormatter.cs" />
+    <None Include="Formatters\IgnoreFormatter.cs" />
+    <None Include="Formatters\MultiDimentionalArrayFormatter.cs" />
+    <None Include="Formatters\NullableFormatter.cs" />
+    <None Include="Formatters\PrimitiveFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveFormatter.tt</DependentUpon>
+    </None>
+    <None Include="Formatters\PrimitiveObjectFormatter.cs" />
+    <None Include="Formatters\StandardClassLibraryFormatters.cs" />
+    <None Include="Formatters\TupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TupleFormatter.tt</DependentUpon>
+    </None>
+    <None Include="Formatters\ValueTupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ValueTupleFormatter.tt</DependentUpon>
+    </None>
+    <None Include="Internal\Emit\DynamicAssembly.cs" />
+    <None Include="Internal\Emit\ExpressionUtility.cs" />
+    <None Include="Internal\Emit\ILGeneratorExtensions.cs" />
+    <None Include="Internal\Emit\ILViewer.cs" />
+    <None Include="Internal\Emit\MetaMember.cs" />
+    <None Include="Internal\Emit\MetaType.cs" />
+    <None Include="JsonSerializer.NonGeneric.cs" />
+    <None Include="Resolvers\AttributeFormatterResolver.cs" />
+    <None Include="Resolvers\BuiltinResolver.cs" />
+    <None Include="Resolvers\CompositeResolver.cs" />
+    <None Include="Resolvers\DynamicGenericResolver.cs" />
+    <None Include="Resolvers\DynamicObjectResolver.cs" />
+    <None Include="Resolvers\EnumResolver.cs" />
+    <None Include="Resolvers\StandardResolver.cs" />
+  </ItemGroup>
+
+  <!--
+  <ItemGroup>
+    <Compile Include="..\Brimborium.Disguise\**\*.cs" />
+    <Compile Include="..\Brimborium.Disguise.RunTime\**\*.cs" />
+  </ItemGroup>
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Nullable" Version="1.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+  <!--
+  C:\github\grimmborium\Brimborium.Json\src\Brimborium.Json\Internal\UnsafeMemory.tt
+  -->
+  <ItemGroup>
+    <None Update="Internal\UnsafeMemory.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>UnsafeMemory.cs</LastGenOutput>
+    </None>
+    <None Update="Formatters\PrimitiveFormatter.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveFormatter.cs</LastGenOutput>
+    </None>
+    <None Update="Formatters\ValueTupleFormatter.tt">
+      <LastGenOutput>ValueTupleFormatter.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Formatters\TupleFormatter.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TupleFormatter.cs</LastGenOutput>
+    </None>
+    <None Update="Internal\UnsafeMemory.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>UnsafeMemory.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Internal\UnsafeMemory.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UnsafeMemory.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>
