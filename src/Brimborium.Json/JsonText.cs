@@ -19,6 +19,13 @@ namespace Brimborium.Json {
             }
         }
 
+        public JsonText(string buffer, bool lazy) {
+            var ca = buffer.ToCharArray();
+            Utf16 = ca;
+            if (!lazy) {
+                Utf8 = StringUtility.ToUtf8(ca);
+            }
+        }
         public Span<byte> GetSpanUtf8() {
             if (Utf8 is null) {
                 Utf8 = StringUtility.ToUtf8(Utf16!);

@@ -1,4 +1,7 @@
-﻿namespace Brimborium.Json {
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Brimborium.Json {
     // JSON RFC: https://www.ietf.org/rfc/rfc4627.txt
 
     public struct JsonReader {
@@ -10,7 +13,12 @@
             this.Configuration = configuration;
         }
 
-
+        public object Parse(Type? type) {
+            return this.JsonSource.Parse(type);
+        }
+        public ValueTask<object> ParseAsync(Type? type) {
+            return this.JsonSource.ParseAsync(type);
+        }
 
         //        public abstract ArraySegment<byte> ReadPropertyNameSegmentRaw();
         //        public abstract ArraySegment<byte> ReadStringSegmentRaw();

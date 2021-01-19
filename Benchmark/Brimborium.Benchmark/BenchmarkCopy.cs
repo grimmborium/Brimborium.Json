@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Brimborium.Benchmark {
-
     [SimpleJob]
     public class BenchmarkCopy {
         private JsonText jsonText = null!;

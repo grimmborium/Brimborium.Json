@@ -68,6 +68,6 @@ namespace MyCode
                     MetadataReference.CreateFromFile(typeof(System.Reflection.Binder).GetTypeInfo().Assembly.Location)
                     //MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.Binder).GetTypeInfo().Assembly.Location) 
                 },
-                new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
-}/
+}
