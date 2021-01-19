@@ -1,7 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 
 using Brimborium.Json;
-using Brimborium.Json.Internal;
 
 using System;
 using System.Collections.Generic;
@@ -10,10 +9,9 @@ using System.Text;
 namespace Brimborium.Benchmark {
 
     [SimpleJob]
-    public class Class1 {
-        private Utf816Array utf816Array;
+    public class BenchmarkCopy {
+        private JsonText jsonText = null!;
         private byte[] byteD = null!;
-        private JsonWriterUtf8 writer = null!;
 
         private char[] charS = null!;
         private char[] charD = null!;
@@ -29,13 +27,13 @@ namespace Brimborium.Benchmark {
             charS = new char[N];
             charD = new char[10240];
 
-            utf816Array = new Utf816Array("".PadLeft(N, '-'));
-            writer = new JsonWriterUtf8(byteD);
+            jsonText = new JsonText("".PadLeft(N, '-').ToCharArray(), false);
+            //writer = new JsonWriterUtf8(byteD);
         }
 
         [Benchmark]
         public void B_Array_Copy() {
-            Array.Copy(utf816Array.Buffer8, 0, byteD, 0, N);
+            Array.Copy(jsonText.Utf8!, 0, byteD, 0, N);
         }
 
         //[Benchmark]
@@ -45,7 +43,7 @@ namespace Brimborium.Benchmark {
 
         [Benchmark]
         public void B_Span() {
-            utf816Array.AsSpan8().CopyTo(byteD.AsSpan());
+            jsonText.GetSpanUtf8().CopyTo(byteD.AsSpan());
         }
 
         //[Benchmark]
