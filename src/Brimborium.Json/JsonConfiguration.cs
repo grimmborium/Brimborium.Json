@@ -9,22 +9,22 @@ namespace Brimborium.Json {
         public T Deserialize<T>(JsonSource jsonSource) {
             throw new NotImplementedException();
         }
-        public JsonSerializerInfo PreCalcJsonSerializerInfo(Type type) {
-            var result = new JsonSerializerInfo(type);
+        public JsonSerializerInfo<T> PreCalcJsonSerializerInfo<T>() {
+            var result = new JsonSerializerInfo<T>(null);
             return result;
         }
-        public bool TryGetSerializerInfo(
+        public bool TryGetSerializerInfo<T>(
             Type? currentType,
-            ref JsonSerializerInfo jsonSerializerInfo
+            ref JsonSerializerInfo<T> jsonSerializerInfo
             ) {
             return false;
         }
 
-        public bool TryGetSerializer(
-            Type? currentType,
+        public bool TryGetSerializer<T>(
+            Type currentType,
             [MaybeNullWhen(false)] out JsonSerializer jsonSerializer
             ) {
-            var result = new JsonSerializerInfo(currentType);
+            var result = new JsonSerializerInfo<T>(currentType);
             if (TryGetSerializerInfo(currentType, ref result)) {
                 if (result.JsonSerializer is object) {
                     jsonSerializer = result.JsonSerializer;
