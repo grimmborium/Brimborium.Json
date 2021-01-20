@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Threading.Tasks;
 //
 namespace Brimborium.Json {
     // JSON RFC: https://www.ietf.org/rfc/rfc4627.txt
@@ -11,6 +12,15 @@ namespace Brimborium.Json {
             this.JsonSink = jsonSink;
             this.Configuration = configuration;
         }
+
+        public void Serialize<T>(T value) {
+            this.Configuration.Serialize<T>(value, this.JsonSink);
+
+        }
+
+        public void Flush() => this.JsonSink.Flush();
+
+        public Task FlushAsync() => this.JsonSink.FlushAsync();
 
         //    public virtual int CurrentOffset {
         //        get {

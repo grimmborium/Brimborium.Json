@@ -11,7 +11,7 @@ namespace Brimborium.Json {
 
         public override void Write(JsonText jsonText) {
             var src = jsonText.GetSpanUtf16();
-            var dst = this.GetSpan(src.Length, true);
+            var dst = this.GetFreeSpan(src.Length, true);
             src.CopyTo(dst);
         }
 
@@ -26,7 +26,7 @@ namespace Brimborium.Json {
             return ref Buffer;
         }
 
-        public virtual Span<char> GetSpan(int count, bool advance) {
+        public virtual Span<char> GetFreeSpan(int count, bool advance) {
             if (count > Buffer.Free) {
                 WriteDown(count);
                 if (this.Buffer.Length < count) {
@@ -36,11 +36,11 @@ namespace Brimborium.Json {
             }
             if (count <= Buffer.Free) {
                 if (advance) {
-                    var result = Buffer.GetSpan();
+                    var result = Buffer.GetFreeSpan();
                     Buffer.Offset += count;
                     return result;
                 } else {
-                    return Buffer.GetSpan();
+                    return Buffer.GetFreeSpan();
                 }
             } else {
                 throw new InvalidOperationException();
@@ -51,11 +51,11 @@ namespace Brimborium.Json {
             this.Buffer.Offset += count;
         }
 
-        protected virtual void WriteDown(int nextRequestedCount) {
-            // after
-            this.Buffer.Offset = 0;
-            this.Buffer.Length = this.Buffer.Buffer.Length;
-        }
+        //protected virtual void WriteDown(int nextRequestedCount) {
+        //    // after
+        //    this.Buffer.Offset = 0;
+        //    this.Buffer.Length = this.Buffer.Buffer.Length;
+        //}
 
         protected override void Disposing(bool disposing) {
             this.Buffer.Return();

@@ -34,6 +34,7 @@ namespace Brimborium.Json {
         }
 
 
-        public Span<char> GetSpan() => new Span<char>(Buffer, Offset, Length);
+        public Span<char> GetFreeSpan() => new Span<char>(Buffer, Offset, Free);
+        public Span<char> GetUsedSpan() => new Span<char>(Buffer, 0, Offset);
     }
 }

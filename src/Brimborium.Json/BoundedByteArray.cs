@@ -35,6 +35,7 @@ namespace Brimborium.Json {
             this.Length = 0;
         }
 
-        public Span<byte> GetSpan() => new Span<byte>(Buffer, Offset, Length);
+        public Span<byte> GetFreeSpan() => new Span<byte>(Buffer, Offset, Free);
+        public Span<byte> GetUsedSpan() => new Span<byte>(Buffer, 0, Offset);
     }
 }

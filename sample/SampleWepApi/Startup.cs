@@ -136,6 +136,7 @@ namespace SampleWepApi {
                             }
                             await context.Response.WriteAsync(sb.ToString()).ConfigureAwait(false);
                         } catch (System.Exception e) {
+                            sb.AppendLine(e.ToString());
                             await context.Response.WriteAsync(sb.ToString()).ConfigureAwait(false);
                         }
                     }

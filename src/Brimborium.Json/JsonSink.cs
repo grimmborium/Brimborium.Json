@@ -7,10 +7,30 @@ using System.Threading.Tasks;
 namespace Brimborium.Json {
     public class JsonSink : IDisposable {
         private int _IsDisposed;
-        
+
+        //// think of
+        //public virtual void Serialize<T>(T value) {
+        //    throw new NotImplementedException();
+        //}
+
         public virtual void Write(JsonText jsonText) { }
-        public virtual void Flush() { }
-        public virtual Task FlushAsync() { return Task.CompletedTask; }
+
+        protected virtual void WriteDown(int nextRequestedCount) {
+            // after
+            // this.Buffer.Offset = 0;
+            // this.Buffer.Length = this.Buffer.Buffer.Length;
+        }
+        public virtual void Flush() {
+            this.WriteDown(0);
+            // stream.Flush()
+        }
+
+        
+
+        public virtual Task FlushAsync() {
+            this.Flush();
+            return Task.CompletedTask;
+        }
 
         protected bool IsDisposed => this._IsDisposed != 0;
 

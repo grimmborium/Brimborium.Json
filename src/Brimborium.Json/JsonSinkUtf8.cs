@@ -1,20 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Brimborium.Json {
     public class JsonSinkUtf8 : JsonSink {
         protected internal BoundedByteArray Buffer;
 
-        public JsonSinkUtf8(JsonConfiguration configuration)
-            :base(configuration){
+        protected JsonSinkUtf8(JsonConfiguration configuration)
+            : base(configuration) {
             this.Buffer = BoundedByteArray.Rent(64 * 1024);
         }
 
         public override void Write(JsonText jsonText) {
             var src = jsonText.GetSpanUtf8();
-            var dst = this.GetSpan(src.Length, true);
+            var dst = this.GetFreeSpan(src.Length, true);
             src.CopyTo(dst);
         }
-        
+
+        public virtual BoundedByteArray TransGetBuffer() {
+            var buffer = this.Buffer;
+            this.Buffer = new BoundedByteArray(Array.Empty<byte>(), 0, 0, false);
+            return buffer;
+        }
+
         public virtual ref BoundedByteArray GetBuffer(int count) {
             if (count > Buffer.Free) {
                 WriteDown(count);
@@ -26,7 +33,7 @@ namespace Brimborium.Json {
             return ref Buffer;
         }
 
-        public virtual Span<byte> GetSpan(int count, bool advance) {
+        public virtual Span<byte> GetFreeSpan(int count, bool advance) {
             if (count > Buffer.Free) {
                 WriteDown(count);
                 if (this.Buffer.Length < count) {
@@ -36,11 +43,11 @@ namespace Brimborium.Json {
             }
             if (count <= Buffer.Free) {
                 if (advance) {
-                    var result = Buffer.GetSpan();
+                    var result = Buffer.GetFreeSpan();
                     Buffer.Offset += count;
                     return result;
                 } else {
-                    return Buffer.GetSpan();
+                    return Buffer.GetFreeSpan();
                 }
             } else {
                 throw new InvalidOperationException();
@@ -51,11 +58,11 @@ namespace Brimborium.Json {
             this.Buffer.Offset += count;
         }
 
-        protected virtual void WriteDown(int nextRequestedCount) {
-            // after
-            this.Buffer.Offset = 0;
-            this.Buffer.Length = this.Buffer.Buffer.Length;
-        }
+        //protected virtual void WriteDown(int nextRequestedCount) {
+        //    // after
+        //    this.Buffer.Offset = 0;
+        //    this.Buffer.Length = this.Buffer.Buffer.Length;
+        //}
 
         protected override void Disposing(bool disposing) {
             this.Buffer.Return();

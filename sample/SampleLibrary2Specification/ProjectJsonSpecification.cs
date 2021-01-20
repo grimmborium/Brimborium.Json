@@ -15,27 +15,26 @@ namespace SampleLibrary2 {
                 .WithName("RPerson")
                 .AddProperty(p => p.FirstName, p => p.WithName("fn") /*.WithConverter()*/)
                 .IgnoreProperty(p => p.LastName)
-                .Validate()
-                .Build();
+                .BuildType();
             builder.AddSerializationType<CPerson>()
                 .WithName("CPerson")
                 .AddProperty(p => p.FirstName, p => p.WithName("fn") /*.WithConverter()*/)
                 .IgnoreProperty(p => p.LastName)
-                .Validate()
-                .Build();
+                .BuildType();
 
             builder.AddSerializationType<PocoA>()
                 .WithName("A")
                 .AddProperty(p => p.A)
-                .Build();
+                .BuildType();
             builder.AddSerializationType<PocoB>()
                 .WithName("BE")
                 .WithClassHierachie()
                 .AddProperty(p => p.B);
-            return builder.Build();
+            return builder.BuildSpecification();
         }
     }
 
+#if false
     public class JsonFormatterResolverRPerson
         : IJsonFormatterResolver
         , IJsonFormatterResolverStatic {
@@ -157,6 +156,6 @@ namespace SampleLibrary2 {
         }
     }
 
-
+#endif
 }
 
