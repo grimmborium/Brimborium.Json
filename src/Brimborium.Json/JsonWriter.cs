@@ -14,6 +14,7 @@ namespace Brimborium.Json {
         }
 
         public void Serialize<T>(T value) {
+            //this.Configuration.TryGetSerialize()
             this.Configuration.Serialize<T>(value, this.JsonSink);
 
         }

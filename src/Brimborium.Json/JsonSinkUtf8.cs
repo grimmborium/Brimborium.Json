@@ -16,7 +16,7 @@ namespace Brimborium.Json {
             src.CopyTo(dst);
         }
 
-        public virtual BoundedByteArray TransGetBuffer() {
+        public virtual BoundedByteArray DisposeAndGetBuffer() {
             var buffer = this.Buffer;
             this.Buffer = new BoundedByteArray(Array.Empty<byte>(), 0, 0, false);
             return buffer;

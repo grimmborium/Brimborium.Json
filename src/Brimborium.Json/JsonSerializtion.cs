@@ -35,13 +35,23 @@ namespace Brimborium.Json {
             System.Threading.Volatile.Write(ref _DefaultConfiguration, defaultConfiguration);
         }
 
+        /// <summary>
+        /// 
+        /// var result = Serialize<T>(...,...);
+        /// result.GetUsedSpan().CopyTo(....);
+        /// result.Return();
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
         public static BoundedByteArray Serialize<T>(T value, [AllowNull] JsonConfiguration configuration = default) {
-            configuration ??= JsonSerializer.GetDefaultConfiguration();
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
             var sink = new JsonSinkUtf8Array(configuration);
             var writer = new JsonWriter(sink, configuration);
             writer.Serialize<T>(value);
             writer.Flush();
-            return sink.TransGetBuffer();
+            return sink.DisposeAndGetBuffer();
         }
     }
 }
