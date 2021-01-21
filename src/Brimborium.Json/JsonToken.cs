@@ -5,38 +5,43 @@ using System.Security.AccessControl;
 namespace Brimborium.Json {
     public struct JsonToken {
         public JsonTokenKind Kind;
+        public int OffsetUtf8;
+        public int LengthUtf8;
+        public int OffsetUtf16;
+        public int LengthUtf16;
 
-        public bool IsValidUtf8;
+        public bool IsValidUtf8 => LengthUtf8 > 0;
 
-        public bool IsValidUtf16;
-
-        public BoundedByteArray BoundedByteArray;
-
-        public BoundedCharArray BoundedCharArray;
+        public bool IsValidUtf16 => LengthUtf16 > 0;
 
         public JsonToken(int minimumLength) {
             Kind = JsonTokenKind.Fault;
-            BoundedByteArray = BoundedByteArray.Rent(minimumLength);
-            BoundedCharArray = BoundedCharArray.Rent(minimumLength * 4);
-            IsValidUtf8 = true;
-            IsValidUtf16 = true;
+            OffsetUtf8 = 0;
+            LengthUtf8 = 0;
+            OffsetUtf16 = 0;
+            LengthUtf16 = 0;
         }
 
-        public Span<byte> GetSpanUtf8() {
-            return this.BoundedByteArray.GetUsedSpan();
+        public Span<byte> GetSpanUtf8(JsonReaderContext context) {
+            return context.SourceByteArray.GetSpan(OffsetUtf8, LengthUtf8);
         }
-        public Span<char> GetSpanUtf16() {
-            return this.BoundedCharArray.GetUsedSpan();
+        public Span<char> GetSpanUtf16(JsonReaderContext context) {
+            return context.SourceCharArray.GetSpan(OffsetUtf16, LengthUtf16);
         }
-
-        public bool IsEqual(JsonText jsonText) {
+        public bool IsEqual(JsonText jsonText, JsonReaderContext context) {
             if (IsValidUtf8) {
-                return this.GetSpanUtf8().SequenceEqual(jsonText.GetSpanUtf8());
+                return this.GetSpanUtf8(context).SequenceEqual(jsonText.GetSpanUtf8());
             }
             if (IsValidUtf16) {
-                return this.GetSpanUtf16().SequenceEqual(jsonText.GetSpanUtf16());
+                return this.GetSpanUtf16(context).SequenceEqual(jsonText.GetSpanUtf16());
             }
             return false;
+        }
+
+        public void SetKind(JsonTokenKind kind) {
+            this.Kind = kind;
+            this.LengthUtf8 = 0;
+            this.LengthUtf16 = 0;
         }
     }
 
@@ -49,6 +54,9 @@ namespace Brimborium.Json {
         ValueSep,
         PairSep,
         String,
+        True,
+        False,
+        Null,
         Number,
         Value
     };

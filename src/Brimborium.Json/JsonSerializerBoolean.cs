@@ -23,13 +23,13 @@ namespace Brimborium.Json {
             if (!jsonSourceUtf8.TryGetNextToken()) { await jsonSourceUtf8.GetNextTokenAsync(); }
             if (jsonSource.JsonToken.Kind == JsonTokenKind.Value) {
                 if (jsonSource.JsonToken.IsValidUtf8) {
-                    jsonSource.JsonToken.GetSpanUtf8();
-                    jsonSource.JsonToken.GetSpanUtf16();
+                    //jsonSource.JsonToken.GetSpanUtf8();
+                    //jsonSource.JsonToken.GetSpanUtf16();
                     //JsonConstText.True
                 }
-                if (jsonSource.JsonToken.IsEqual(JsonConstText.True)) {
+                if (jsonSource.JsonToken.IsEqual(JsonConstText.True, jsonContext)) {
                     return true;
-                } else if (jsonSource.JsonToken.IsEqual(JsonConstText.False)) {
+                } else if (jsonSource.JsonToken.IsEqual(JsonConstText.False, jsonContext)) {
                     return false;
                 }
             }

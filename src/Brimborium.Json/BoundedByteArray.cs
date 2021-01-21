@@ -31,6 +31,11 @@ namespace Brimborium.Json {
             ReturnBuffer = returnBuffer;
         }
 
+        public BoundedByteArray(byte[] buffer) {
+            Buffer = buffer;
+            Offset = Length = Buffer.Length;
+            ReturnBuffer = false;
+        }
 
         public static BoundedByteArray Rent(int minimumLength) {
             var buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(minimumLength);
@@ -51,7 +56,10 @@ namespace Brimborium.Json {
             this.Length = 0;
         }
 
+        public Span<byte> GetSpan(int offsetUtf8, int lengthUtf8) => new Span<byte>(Buffer, offsetUtf8, lengthUtf8);
+
         public Span<byte> GetFreeSpan() => new Span<byte>(Buffer, Offset, Free);
+
         public Span<byte> GetUsedSpan() => new Span<byte>(Buffer, 0, Offset);
     }
 }

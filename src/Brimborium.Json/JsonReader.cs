@@ -6,7 +6,7 @@ namespace Brimborium.Json {
 
     public struct JsonReader {
         public readonly JsonSource JsonSource;
-        
+
         public JsonReader(JsonSource jsonSource) {
             this.JsonSource = jsonSource;
         }
@@ -22,7 +22,7 @@ namespace Brimborium.Json {
                 var jsonReaderContext = new JsonReaderContext();
                 return await this.JsonSource.Configuration.DeserializeAsync<T>(this.JsonSource, jsonReaderContext, ref jsonSerializerInfo);
             } else {
-                throw new FormatterNotRegisteredException(typeof(T).FullName);
+                throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
             }
             //if (typeof(T).IsValueType) {
             //    // valuetypes will be boxed - avoid
@@ -87,5 +87,4 @@ namespace Brimborium.Json {
         //        public abstract void ReadNextBlock();
         //        public abstract void SkipWhiteSpace();
     }
-    public class JsonReaderContext { }
 }

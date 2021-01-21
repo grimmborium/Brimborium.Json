@@ -6,12 +6,14 @@ namespace Brimborium.Json {
     public class JsonText {
         public byte[]? Utf8;
         public char[]? Utf16;
+
         public JsonText(byte[] buffer, bool lazy) {
             Utf8 = buffer;
             if (!lazy) {
                 Utf16 = StringUtility.FromUtf8(buffer);
             }
         }
+
         public JsonText(char[] buffer, bool lazy) {
             Utf16 = buffer;
             if (!lazy) {
@@ -26,6 +28,19 @@ namespace Brimborium.Json {
                 Utf8 = StringUtility.ToUtf8(ca);
             }
         }
+        public byte[] GetUtf8() {
+            if (Utf8 is null) {
+                Utf8 = StringUtility.ToUtf8(Utf16!);
+            }
+            return Utf8;
+        }
+        public char[] GetUtf16() {
+            if (Utf16 is null) {
+                Utf16 = StringUtility.FromUtf8(Utf8!);
+            }
+            return Utf16;
+        }
+
         public Span<byte> GetSpanUtf8() {
             if (Utf8 is null) {
                 Utf8 = StringUtility.ToUtf8(Utf16!);

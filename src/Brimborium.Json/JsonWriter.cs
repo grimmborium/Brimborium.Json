@@ -10,11 +10,11 @@ namespace Brimborium.Json {
     public struct JsonWriter {
         public readonly JsonSink JsonSink;
 
-        public JsonWriter (JsonSink jsonSink) {
+        public JsonWriter(JsonSink jsonSink) {
             this.JsonSink = jsonSink;
         }
 
-        public void Serialize<T> (T value) {
+        public void Serialize<T>(T value) {
             if (typeof(T).IsValueType) {
                 // valuetypes will be boxed - avoid
             } else if (ReferenceEquals(value, null)) {
@@ -22,14 +22,14 @@ namespace Brimborium.Json {
                 return;
             }
             {
-                var configuration=this.JsonSink.Configuration;
+                var configuration = this.JsonSink.Configuration;
                 var jsonSerializerInfo = configuration.PreCalcJsonSerializerInfo<T>();
                 if (configuration.TryGetSerializerInfo<T>(value?.GetType(), ref jsonSerializerInfo)) {
                     var jsonContext = new JsonWriterContext();
                     this.JsonSink.Configuration.Serialize<T>(value, this.JsonSink, jsonContext, ref jsonSerializerInfo);
                     return;
                 } else {
-                    throw new FormatterNotRegisteredException(typeof(T).FullName);
+                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
                 }
                 /*
                 if (this.JsonSink.Configuration.TryGetSerializer<T>(value!.GetType(), out var jsonSerializer)) {
@@ -43,9 +43,9 @@ namespace Brimborium.Json {
             }
         }
 
-        public void Flush () => this.JsonSink.Flush ();
+        public void Flush() => this.JsonSink.Flush();
 
-        public Task FlushAsync () => this.JsonSink.FlushAsync ();
+        public Task FlushAsync() => this.JsonSink.FlushAsync();
 
         //    public virtual int CurrentOffset {
         //        get {
