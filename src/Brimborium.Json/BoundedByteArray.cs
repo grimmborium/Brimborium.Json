@@ -1,12 +1,24 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Brimborium.Json {
-    public struct BoundedByteArray{
+    public struct BoundedByteArray {
+        private static byte[]? _EmptyArray;
+        public static byte[] EmptyArray => (_EmptyArray ??= new byte[0]);
+
         public byte[] Buffer;
         public int Offset;
         public int Length;
         public bool ReturnBuffer;
+
         public int Free => Length - Offset;
+
+        public byte Current {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get {
+                return Buffer[Offset];
+            }
+        }
 
         public BoundedByteArray(
             byte[] buffer,
@@ -24,7 +36,11 @@ namespace Brimborium.Json {
             var buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(minimumLength);
             return new BoundedByteArray(buffer, 0, buffer.Length, true);
         }
-        
+
+        public static BoundedByteArray Empty() {
+            return new BoundedByteArray(EmptyArray, 0, 0, false);
+        }
+
         public void Return() {
             if (ReturnBuffer) {
                 System.Buffers.ArrayPool<byte>.Shared.Return(this.Buffer);

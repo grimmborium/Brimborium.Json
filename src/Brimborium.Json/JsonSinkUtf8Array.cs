@@ -1,32 +1,34 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Brimborium.Json.Internal;
 
 namespace Brimborium.Json {
     public class JsonSinkUtf8Array : JsonSinkUtf8 {
-        private List<BoundedByteArray> boundedByteArrays;
+        private AppendArray<BoundedByteArray> boundedByteArrays;
+
         public JsonSinkUtf8Array(JsonConfiguration configuration)
             : base(configuration) {
-            this.boundedByteArrays = new List<BoundedByteArray>();
+            this.boundedByteArrays = new AppendArray<BoundedByteArray>();
         }
-        protected override void WriteDown(int nextRequestedCount) {
-            this.boundedByteArrays.Add(this.Buffer);
-            this.Buffer = BoundedByteArray.Rent(this.Buffer.Buffer.Length);
-            // base.WriteDown(nextRequestedCount);
-            //
-            //this.Buffer.Offset = 0;
-            //this.Buffer.Length = this.Buffer.Buffer.Length;
 
+        protected override void WriteDown(int nextRequestedCount) {
+            if (this.Buffer.Offset > 0) {
+                this.boundedByteArrays.Add(ref this.Buffer);
+                this.Buffer = (nextRequestedCount < 0) ? BoundedByteArray.Empty() : BoundedByteArray.Rent(this.Buffer.Buffer.Length);
+            }
         }
+
         public override void Flush() {
+            this.WriteDown(-1);
             if (boundedByteArrays.Count == 0) {
                 // OK
             } else {
-                this.boundedByteArrays.Add(this.Buffer);
-                var length = boundedByteArrays.Sum(bba => bba.Offset);
+                int length = 0;
+                for (int idx = 0; idx < boundedByteArrays.Count; idx++) {
+                    length += boundedByteArrays.Items[idx].Offset;
+                }
                 this.Buffer = BoundedByteArray.Rent(length);
-                foreach(var bba in this.boundedByteArrays){
-                    bba.GetUsedSpan().CopyTo(this.Buffer.GetFreeSpan());
-                    this.Buffer.Offset += bba.Offset;
+                for (int idx = 0; idx < boundedByteArrays.Count; idx++) {
+                    boundedByteArrays.Items[idx].GetUsedSpan().CopyTo(this.Buffer.GetFreeSpan());
+                    this.Buffer.Offset += boundedByteArrays.Items[idx].Offset;
                 }
             }
         }

@@ -2,12 +2,32 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Brimborium.Json {
     /// <summary>
     /// EntryPoint of Brimborium.Json.
     /// </summary>
     public static partial class JsonSerializtion {
+        private static JsonConfigurationBuilder? _DefaultBuilder;
+
+        public static JsonConfigurationBuilder DefaultBuilder {
+            get {
+                var result = _DefaultBuilder;
+                if (result == null) {
+                    lock (typeof(JsonSerializtion)) {
+                        result = _DefaultBuilder;
+                        if (result == null) {
+                            result = new JsonConfigurationBuilder();
+                            System.Threading.Interlocked.Exchange(ref _DefaultBuilder, result);
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
         private static JsonConfiguration? _DefaultConfiguration;
 
         /// <summary>
@@ -16,21 +36,24 @@ namespace Brimborium.Json {
         public static bool IsConfigurationInitialized => _DefaultConfiguration != null;
 
         public static JsonConfiguration GetDefaultConfiguration() {
-            if (_DefaultConfiguration is object) {
-                return _DefaultConfiguration;
+            var result = _DefaultConfiguration;
+            if (result is object) {
+                return result;
             } else {
-#if false
                 lock (typeof(JsonSerializer)) {
-                    var builder = new JsonSerializationConfigurationBuilder();
-#warning TODO builder.Resolvers
-                    var defaultConfiguration = builder.Build();
-                    System.Threading.Volatile.Write(ref _DefaultConfiguration, defaultConfiguration);
-                    return defaultConfiguration;
+                    result = _DefaultConfiguration;
+                    if (result is object) {
+                        // race
+                    } else {
+                        var builder = DefaultBuilder;
+                        result = builder.Build();
+                        System.Threading.Volatile.Write(ref _DefaultConfiguration, result);
+                    }
                 }
-#endif
-                throw new NotImplementedException();
+                return result;
             }
         }
+
         public static void SetDefaultConfiguration(JsonConfiguration? defaultConfiguration) {
             System.Threading.Volatile.Write(ref _DefaultConfiguration, defaultConfiguration);
         }
@@ -45,14 +68,77 @@ namespace Brimborium.Json {
         /// <param name="value"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static BoundedByteArray Serialize<T>(T value, [AllowNull] JsonConfiguration configuration = default) {
+        public static BoundedByteArray SerializeToArray<T>(
+            T value,
+            [AllowNull] JsonConfiguration configuration = default
+            ) {
             configuration ??= JsonSerializtion.GetDefaultConfiguration();
-            var sink = new JsonSinkUtf8Array(configuration);
-            var writer = new JsonWriter(sink, configuration);
-            writer.Serialize<T>(value);
-            writer.Flush();
-            return sink.DisposeAndGetBuffer();
+            using (var sink = new JsonSinkUtf8Array(configuration)) {
+                var writer = new JsonWriter(sink);
+                writer.Serialize<T>(value);
+                writer.Flush();
+                return sink.DisposeAndGetBuffer();
+            }
         }
+
+        public static void SerializeToAsyncStreamUtf8<T>(
+            T value,
+            Stream stream,
+            [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            throw new NotImplementedException();
+        }
+
+        public static void SerializeToSyncStreamUtf8<T>(
+            T value,
+            Stream stream,
+            [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            throw new NotImplementedException();
+        }
+
+        public static void SerializeToEncodingStream<T>(
+            T value,
+            Stream stream,
+            [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            throw new NotImplementedException();
+        }
+
+        public static string SerializeToString<T>(
+            T value,
+            Stream stream,
+            [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            throw new NotImplementedException();
+        }
+
+        public static async Task<T> DeserializeToStreamUtf8Async<T>(
+                Stream stream,
+                [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            using (var source = new JsonSourceUtf8AsyncStream(stream, configuration)) {
+                var reader = new JsonReader(source);
+                return await reader.DeserializeAsync<T>();
+            }
+        }
+
+        public static T DeserializeToStreamUtf8<T>(
+                Stream stream,
+                [AllowNull] JsonConfiguration configuration = default
+            ) {
+            configuration ??= JsonSerializtion.GetDefaultConfiguration();
+            using (var source = new JsonSourceUtf8AsyncStream(stream, configuration)) {
+                var reader = new JsonReader(source);
+                return reader.Deserialize<T>();
+            }
+        }
+
     }
 }
 

@@ -6,7 +6,9 @@ namespace Brimborium.Json {
         public int Offset;
         public int Length;
         public bool ReturnBuffer;
+
         public int Free => Length - Offset;
+        public char Current => Buffer[Offset];
 
         public BoundedCharArray(
             char[] buffer,

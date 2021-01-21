@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Brimborium.Json {
     public class JsonSinkUtf8 : JsonSink {
         protected internal BoundedByteArray Buffer;
 
         protected JsonSinkUtf8(JsonConfiguration configuration)
-            : base(configuration) {
+            : base(configuration.GetForUtf8()) {
             this.Buffer = BoundedByteArray.Rent(64 * 1024);
         }
 
@@ -18,11 +17,12 @@ namespace Brimborium.Json {
 
         public virtual BoundedByteArray DisposeAndGetBuffer() {
             var buffer = this.Buffer;
-            this.Buffer = new BoundedByteArray(Array.Empty<byte>(), 0, 0, false);
+            this.Buffer = BoundedByteArray.Empty();
+            this.Dispose();
             return buffer;
         }
 
-        public virtual ref BoundedByteArray GetBuffer(int count) {
+        public virtual ref BoundedByteArray GetFreeBuffer(int count) {
             if (count > Buffer.Free) {
                 WriteDown(count);
                 if (count > Buffer.Free) {

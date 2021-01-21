@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿#pragma warning disable IDE0041 // Use 'is null' check
+
+#nullable enable
 
 using System;
 using System.Threading.Tasks;
@@ -7,21 +9,43 @@ namespace Brimborium.Json {
     // JSON RFC: https://www.ietf.org/rfc/rfc4627.txt
     public struct JsonWriter {
         public readonly JsonSink JsonSink;
-        public readonly JsonConfiguration Configuration;
-        public JsonWriter(JsonSink jsonSink, JsonConfiguration configuration) {
+
+        public JsonWriter (JsonSink jsonSink) {
             this.JsonSink = jsonSink;
-            this.Configuration = configuration;
         }
 
-        public void Serialize<T>(T value) {
-            //this.Configuration.TryGetSerialize()
-            this.Configuration.Serialize<T>(value, this.JsonSink);
-
+        public void Serialize<T> (T value) {
+            if (typeof(T).IsValueType) {
+                // valuetypes will be boxed - avoid
+            } else if (ReferenceEquals(value, null)) {
+                this.JsonSink.Write(JsonConstText.Null);
+                return;
+            }
+            {
+                var configuration=this.JsonSink.Configuration;
+                var jsonSerializerInfo = configuration.PreCalcJsonSerializerInfo<T>();
+                if (configuration.TryGetSerializerInfo<T>(value?.GetType(), ref jsonSerializerInfo)) {
+                    var jsonContext = new JsonWriterContext();
+                    this.JsonSink.Configuration.Serialize<T>(value, this.JsonSink, jsonContext, ref jsonSerializerInfo);
+                    return;
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName);
+                }
+                /*
+                if (this.JsonSink.Configuration.TryGetSerializer<T>(value!.GetType(), out var jsonSerializer)) {
+                    JsonContext jsonContext = new JsonContext();
+                    this.JsonSink.Configuration.Serialize<T>(value, this.JsonSink, jsonContext, jsonSerializer);
+                    return;
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName);
+                }
+                */
+            }
         }
 
-        public void Flush() => this.JsonSink.Flush();
+        public void Flush () => this.JsonSink.Flush ();
 
-        public Task FlushAsync() => this.JsonSink.FlushAsync();
+        public Task FlushAsync () => this.JsonSink.FlushAsync ();
 
         //    public virtual int CurrentOffset {
         //        get {
@@ -67,4 +91,5 @@ namespace Brimborium.Json {
         //    public abstract void WriteValueSeparator();
         //}
     }
+    public class JsonWriterContext { }
 }

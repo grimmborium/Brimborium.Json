@@ -5,7 +5,7 @@ namespace Brimborium.Json {
         protected internal BoundedCharArray Buffer;
 
         public JsonSinkUtf16(JsonConfiguration configuration)
-            :base(configuration) {
+            :base(configuration.GetForUtf16()) {
             this.Buffer = BoundedCharArray.Rent(64 * 1024);
         }
 

@@ -6,19 +6,44 @@ namespace Brimborium.Json {
 
     public struct JsonReader {
         public readonly JsonSource JsonSource;
-        public readonly JsonConfiguration Configuration;
         
-        public JsonReader(JsonSource jsonSource, JsonConfiguration configuration) {
+        public JsonReader(JsonSource jsonSource) {
             this.JsonSource = jsonSource;
-            this.Configuration = configuration;
         }
 
-        public object Parse(Type? type) {
-            return this.JsonSource.Parse(type);
+        public T Deserialize<T>() {
+            throw new NotImplementedException();
         }
-        public ValueTask<object> ParseAsync(Type? type) {
-            return this.JsonSource.ParseAsync(type);
+
+        public async ValueTask<T> DeserializeAsync<T>() {
+            var configuration = this.JsonSource.Configuration;
+            var jsonSerializerInfo = configuration.PreCalcJsonSerializerInfo<T>();
+            if (configuration.TryGetSerializerInfo<T>(null, ref jsonSerializerInfo)) {
+                var jsonReaderContext = new JsonReaderContext();
+                return await this.JsonSource.Configuration.DeserializeAsync<T>(this.JsonSource, jsonReaderContext, ref jsonSerializerInfo);
+            } else {
+                throw new FormatterNotRegisteredException(typeof(T).FullName);
+            }
+            //if (typeof(T).IsValueType) {
+            //    // valuetypes will be boxed - avoid
+            //} else if (ReferenceEquals(value, null)) {
+            //    this.JsonSource.Write(JsonConstText.Null);
+            //}
+            /*
+                if (this.JsonSource.Configuration.TryGetSerializer<T>(null, out var jsonSerializer)) {
+                JsonContext jsonContext = new JsonContext();
+                    await this.JsonSource.Configuration.DeserializeAsync<T>(this.JsonSource, jsonContext, jsonSerializer);
+                }
+            */
         }
+
+        //public object Parse(Type? type) {
+        //    return this.JsonSource.Parse(type);
+        //}
+        //public ValueTask<object> ParseAsync(Type? type) {
+        //    return this.JsonSource.ParseAsync(type);
+        //}
+
 
         //        public abstract ArraySegment<byte> ReadPropertyNameSegmentRaw();
         //        public abstract ArraySegment<byte> ReadStringSegmentRaw();
@@ -62,4 +87,5 @@ namespace Brimborium.Json {
         //        public abstract void ReadNextBlock();
         //        public abstract void SkipWhiteSpace();
     }
+    public class JsonReaderContext { }
 }

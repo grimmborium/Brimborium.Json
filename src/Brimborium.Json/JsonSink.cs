@@ -1,13 +1,17 @@
 ﻿using System;
-using System.Buffers;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Brimborium.Json {
+    /// <summary>
+    /// JsonSink are NOT threadsafe.
+    /// </summary>
     public class JsonSink : IDisposable {
         private int _IsDisposed;
+        public readonly JsonConfiguration Configuration;
 
+        public JsonSink(JsonConfiguration configuration) {
+            this.Configuration = configuration;
+        }
         //// think of
         //public virtual void Serialize<T>(T value) {
         //    throw new NotImplementedException();
@@ -21,11 +25,9 @@ namespace Brimborium.Json {
             // this.Buffer.Length = this.Buffer.Buffer.Length;
         }
         public virtual void Flush() {
-            this.WriteDown(0);
+            this.WriteDown(-1);
             // stream.Flush()
         }
-
-        
 
         public virtual Task FlushAsync() {
             this.Flush();
@@ -33,12 +35,6 @@ namespace Brimborium.Json {
         }
 
         protected bool IsDisposed => this._IsDisposed != 0;
-
-        public readonly JsonConfiguration Configuration;
-
-        public JsonSink(JsonConfiguration configuration) {
-            this.Configuration = configuration;
-        }
 
         protected void Dispose(bool disposing) {
             if (0 == System.Threading.Interlocked.Exchange(ref _IsDisposed, 1)) {
@@ -64,5 +60,4 @@ namespace Brimborium.Json {
             GC.SuppressFinalize(this);
         }
     }
-
 }

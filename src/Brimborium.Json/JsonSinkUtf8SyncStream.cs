@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Threading.Tasks;
 
 namespace Brimborium.Json {
     public class JsonSinkUtf8SyncStream : JsonSinkUtf8 {
@@ -11,27 +10,17 @@ namespace Brimborium.Json {
         }
 
         protected override void WriteDown(int nextRequestedCount) {
-            _Stream.Write(this.Buffer.Buffer, 0, this.Buffer.Offset);
-            // base.WriteDown(nextRequestedCount);
-            // after
-            this.Buffer.Offset = 0;
-            this.Buffer.Length = this.Buffer.Buffer.Length;
+            if (this.Buffer.Offset > 0) {
+                _Stream.Write(this.Buffer.Buffer, 0, this.Buffer.Offset);
+
+                this.Buffer.Offset = 0;
+                this.Buffer.Length = this.Buffer.Buffer.Length;
+            }
         }
 
         public override void Flush() {
-            if (this.Buffer.Offset > 0) {
-                WriteDown(0);
-            }
+            WriteDown(0);
             this._Stream.Flush();
         }
-
-        public override Task FlushAsync() {
-            if (this.Buffer.Offset > 0) {
-                WriteDown(0);
-            }
-            this._Stream.Flush();
-            return Task.CompletedTask;
-        }
-
     }
 }
