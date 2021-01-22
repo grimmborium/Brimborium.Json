@@ -36,11 +36,11 @@ namespace Brimborium.Json {
             }
             if (count <= Buffer.Free) {
                 if (advance) {
-                    var result = Buffer.GetFreeSpan();
+                    var result = Buffer.GetRightSpan();
                     Buffer.Offset += count;
                     return result;
                 } else {
-                    return Buffer.GetFreeSpan();
+                    return Buffer.GetRightSpan();
                 }
             } else {
                 throw new InvalidOperationException();

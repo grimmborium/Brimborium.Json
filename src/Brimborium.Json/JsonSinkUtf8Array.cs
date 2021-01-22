@@ -27,7 +27,7 @@ namespace Brimborium.Json {
                 }
                 this.Buffer = BoundedByteArray.Rent(length);
                 for (int idx = 0; idx < boundedByteArrays.Count; idx++) {
-                    boundedByteArrays.Items[idx].GetUsedSpan().CopyTo(this.Buffer.GetFreeSpan());
+                    boundedByteArrays.Items[idx].GetLeftSpan().CopyTo(this.Buffer.GetRightSpan());
                     this.Buffer.Offset += boundedByteArrays.Items[idx].Offset;
                 }
             }

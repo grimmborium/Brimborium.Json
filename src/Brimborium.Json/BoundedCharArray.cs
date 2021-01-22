@@ -52,8 +52,22 @@ namespace Brimborium.Json {
 
         public Span<char> GetSpan(int offsetUtf8, int lengthUtf8) => new Span<char>(Buffer, offsetUtf8, lengthUtf8);
 
-        public Span<char> GetFreeSpan() => new Span<char>(Buffer, Offset, Free);
+        public Span<char> GetLeftSpan() => new Span<char>(Buffer, 0, Offset);
 
-        public Span<char> GetUsedSpan() => new Span<char>(Buffer, 0, Offset);
+        public Span<char> GetRightSpan() => new Span<char>(Buffer, Offset, Free);
+
+        public void EnsureCapacity(int minimumLength) {
+            if (this.Buffer.Length < minimumLength) { 
+                var oldBuffer = this.Buffer;
+                var nextBuffer = System.Buffers.ArrayPool<char>.Shared.Rent(minimumLength);
+                oldBuffer.AsSpan().CopyTo(nextBuffer.AsSpan());
+                this.Buffer = nextBuffer;
+                if (ReturnBuffer) {
+                    System.Buffers.ArrayPool<char>.Shared.Return(oldBuffer);
+                } else {
+                    ReturnBuffer = true;
+                }
+            }
+        }
     }
 }

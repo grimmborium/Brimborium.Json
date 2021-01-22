@@ -15,9 +15,7 @@ namespace Brimborium.Json {
 
         public byte Current {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get {
-                return Buffer[Offset];
-            }
+            get => Buffer[Offset];
         }
 
         public BoundedByteArray(
@@ -29,12 +27,6 @@ namespace Brimborium.Json {
             Offset = offset;
             Length = length;
             ReturnBuffer = returnBuffer;
-        }
-
-        public BoundedByteArray(byte[] buffer) {
-            Buffer = buffer;
-            Offset = Length = Buffer.Length;
-            ReturnBuffer = false;
         }
 
         public static BoundedByteArray Rent(int minimumLength) {
@@ -58,8 +50,22 @@ namespace Brimborium.Json {
 
         public Span<byte> GetSpan(int offsetUtf8, int lengthUtf8) => new Span<byte>(Buffer, offsetUtf8, lengthUtf8);
 
-        public Span<byte> GetFreeSpan() => new Span<byte>(Buffer, Offset, Free);
+        public Span<byte> GetLeftSpan() => new Span<byte>(Buffer, 0, Offset);
 
-        public Span<byte> GetUsedSpan() => new Span<byte>(Buffer, 0, Offset);
+        public Span<byte> GetRightSpan() => new Span<byte>(Buffer, Offset, Free);
+
+        public void EnsureCapacity(int minimumLength) {
+            if (this.Buffer.Length < minimumLength) {
+                var oldBuffer = this.Buffer;
+                var nextBuffer = System.Buffers.ArrayPool<byte>.Shared.Rent(minimumLength);
+                oldBuffer.AsSpan().CopyTo(nextBuffer.AsSpan());
+                this.Buffer = nextBuffer;
+                if (ReturnBuffer) {
+                    System.Buffers.ArrayPool<byte>.Shared.Return(oldBuffer);
+                } else {
+                    ReturnBuffer = true;
+                }
+            }
+        }
     }
 }

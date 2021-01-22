@@ -58,6 +58,14 @@ namespace Brimborium.Json {
             Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
         }
 
+        [Fact]
+        public void JsonParserUtf8_011_BooleanManyArray() {
+
+            string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            var context = InvokeParse(json);
+            //Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+        }
+
         private JsonTokenKind[] GetTokenKinds(JsonReaderContext context) {
             var result = new JsonTokenKind[context.CountToken];
             for (int idx = 0; (idx < context.CountToken); idx++) {
@@ -76,9 +84,16 @@ namespace Brimborium.Json {
         private static JsonReaderContext InvokeParse(string json) {
             var parser = new JsonParserUtf8();
             JsonText jsonText = new JsonText(json, false);
-            BoundedByteArray src = new BoundedByteArray(jsonText.GetUtf8());
+            var utf8 = jsonText.GetUtf8();
             JsonReaderContext context = new JsonReaderContext();
-            parser.Parse(src, context);
+            for (int i = 0; i < 10000; i++) {
+                BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
+                context = new JsonReaderContext();
+                parser.Parse(src, context, true);
+                while (context.Tokens[context.IndexToken].Kind == JsonTokenKind.ArrayEnd) {
+                    parser.Parse(context);
+                }
+            }
             return context;
         }
     }

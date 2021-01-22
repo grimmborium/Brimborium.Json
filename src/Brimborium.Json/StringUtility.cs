@@ -9,6 +9,18 @@ namespace Brimborium.Json {
         public static char[] FromUtf8(byte[] buffer) {
             return Utf8NoBOM.GetChars(buffer);
         }
+        public static int ConvertFromUtf8(Span<byte> src, Span<char> dst) {
+#if NETCOREAPP3_1 || NET5_0
+            return Utf8NoBOM.GetChars(src, dst);
+#else
+            unsafe { 
+                return Utf8NoBOM.GetChars(
+                    (byte*)System.Runtime.CompilerServices.Unsafe.AsPointer(ref src.GetPinnableReference()), src.Length,
+                    (char*)System.Runtime.CompilerServices.Unsafe.AsPointer(ref dst.GetPinnableReference()), dst.Length);
+            }
+            
+#endif
+        }
 
         public static Memory<char> FromUtf8(Span<byte> buffer) {
 #if NETCOREAPP3_1 || NET5_0

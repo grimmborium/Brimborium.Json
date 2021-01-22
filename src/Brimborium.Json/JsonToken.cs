@@ -23,10 +23,10 @@ namespace Brimborium.Json {
         }
 
         public Span<byte> GetSpanUtf8(JsonReaderContext context) {
-            return context.SourceByteArray.GetSpan(OffsetUtf8, LengthUtf8);
+            return context.BoundedByteArray.GetSpan(OffsetUtf8, LengthUtf8);
         }
         public Span<char> GetSpanUtf16(JsonReaderContext context) {
-            return context.SourceCharArray.GetSpan(OffsetUtf16, LengthUtf16);
+            return context.BoundedCharArray.GetSpan(OffsetUtf16, LengthUtf16);
         }
         public bool IsEqual(JsonText jsonText, JsonReaderContext context) {
             if (IsValidUtf8) {
@@ -43,6 +43,13 @@ namespace Brimborium.Json {
             this.LengthUtf8 = 0;
             this.LengthUtf16 = 0;
         }
+
+        public void SetKindUtf8(JsonTokenKind kind, int offsetStart, int offsetEnd) {
+            this.Kind = kind;
+            this.OffsetUtf8 = offsetStart;
+            this.LengthUtf8 = offsetEnd - offsetStart;
+            this.LengthUtf16 = 0;
+        }
     }
 
     public enum JsonTokenKind {
@@ -53,7 +60,8 @@ namespace Brimborium.Json {
         ArrayEnd,
         ValueSep,
         PairSep,
-        String,
+        StringSimpleUtf8,
+        StringComplex,
         True,
         False,
         Null,
