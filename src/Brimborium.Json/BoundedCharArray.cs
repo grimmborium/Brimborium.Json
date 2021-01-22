@@ -4,6 +4,7 @@ namespace Brimborium.Json {
     public struct BoundedCharArray {
         private static char[]? _EmptyArray;
         public static char[] EmptyArray => (_EmptyArray ??= new char[0]);
+#error sync
 
         public char[] Buffer;
         public int Offset;

@@ -124,6 +124,7 @@ namespace Brimborium.Json {
             configuration ??= JsonSerializtion.GetDefaultConfiguration();
             using (var source = new JsonSourceUtf8AsyncStream(stream, configuration)) {
                 var reader = new JsonReader(source);
+                await source.ReadParseAsync();
                 return await reader.DeserializeAsync<T>();
             }
         }

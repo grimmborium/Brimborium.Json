@@ -10,9 +10,11 @@ namespace Brimborium.Json {
         }
 
         protected override void WriteDown(int nextRequestedCount) {
-            if (this.Buffer.Offset > 0) {
+            if (this.Buffer.ReadLength > 0) {
                 this.boundedByteArrays.Add(ref this.Buffer);
-                this.Buffer = (nextRequestedCount < 0) ? BoundedByteArray.Empty() : BoundedByteArray.Rent(this.Buffer.Buffer.Length);
+                this.Buffer = (nextRequestedCount < 0)
+                    ? BoundedByteArray.Empty()
+                    : BoundedByteArray.Rent(this.Buffer.Buffer.Length);
             }
         }
 
@@ -23,12 +25,14 @@ namespace Brimborium.Json {
             } else {
                 int length = 0;
                 for (int idx = 0; idx < boundedByteArrays.Count; idx++) {
-                    length += boundedByteArrays.Items[idx].Offset;
+                    length += boundedByteArrays.Items[idx].ReadLength;
                 }
                 this.Buffer = BoundedByteArray.Rent(length);
                 for (int idx = 0; idx < boundedByteArrays.Count; idx++) {
-                    boundedByteArrays.Items[idx].GetLeftSpan().CopyTo(this.Buffer.GetRightSpan());
-                    this.Buffer.Offset += boundedByteArrays.Items[idx].Offset;
+                    var srcSpan = boundedByteArrays.Items[idx].GetReadSpan();
+                    srcSpan.CopyTo(this.Buffer.GetFeedSpan());
+                    this.Buffer.FeedOffset += srcSpan.Length;
+                    boundedByteArrays.Items[idx].Return();
                 }
             }
         }

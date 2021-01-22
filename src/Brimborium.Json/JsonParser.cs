@@ -145,7 +145,7 @@ namespace Brimborium.Json {
             Parse(context);
         }
         public void Parse(JsonReaderContext context) {
-            var usedSpan = context.BoundedByteArray.GetRightSpan();
+            var usedSpan = context.BoundedByteArray.GetReadSpan();
             int length = usedSpan.Length;
             bool finalContent = context.FinalContent;
 
@@ -766,8 +766,8 @@ namespace Brimborium.Json {
             context.SaveStateUtf8.idxToken = idxToken;
             context.SaveStateUtf8.offset = offset;
             context.SaveStateUtf8.offsetTokenStart = offsetTokenStart;
-            context.IndexToken = 0;
-            context.CountToken = idxToken;
+            context.ReadIndexToken = 0;
+            context.FeedIndexToken = idxToken;
             return;
 
             lblNeedMoreContent:

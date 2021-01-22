@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace Brimborium.Json {
@@ -19,8 +20,10 @@ namespace Brimborium.Json {
             var configuration = this.JsonSource.Configuration;
             var jsonSerializerInfo = configuration.PreCalcJsonSerializerInfo<T>();
             if (configuration.TryGetSerializerInfo<T>(null, ref jsonSerializerInfo)) {
-                var jsonReaderContext = new JsonReaderContext();
-                return await this.JsonSource.Configuration.DeserializeAsync<T>(this.JsonSource, jsonReaderContext, ref jsonSerializerInfo);
+                var jsonReaderContext = JsonReaderContextPool.Instance.Rent();
+                var result = await this.JsonSource.Configuration.DeserializeAsync<T>(this.JsonSource, jsonReaderContext, ref jsonSerializerInfo);
+                JsonReaderContextPool.Instance.Return(jsonReaderContext);
+                return result;
             } else {
                 throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
             }

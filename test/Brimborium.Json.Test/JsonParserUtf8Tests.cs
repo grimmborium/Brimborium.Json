@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Headers;
 
 using Xunit;
@@ -9,92 +11,148 @@ namespace Brimborium.Json {
         [Fact]
         public void JsonParserUtf8_001_EmptyObject() {
             string json = "{}";
-            var context = InvokeParse(json);
-            Assert.Equal(2, context.CountToken);
-            Assert.Equal(JsonTokenKind.ObjectStart, context.Tokens[0].Kind);
-            Assert.Equal(JsonTokenKind.ObjectEnd, context.Tokens[1].Kind);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ObjectStart, JsonTokenKind.ObjectEnd }, GetTokenKinds(context));
+            Assert.Equal(2,
+                InvokeParse(json, (context, iteration) => {
+                    if (iteration == 0) {
+                        Assert.Equal(2, context.CountToken);
+                        var token0 = context.ReadCurrentToken();
+                        var token1 = context.ReadCurrentToken();
+                        Assert.Equal(0, context.CountToken);
+
+                        Assert.Equal(JsonTokenKind.ObjectStart, token0.Kind);
+                        Assert.Equal(JsonTokenKind.ObjectEnd, token1.Kind);
+
+                        return true;
+                    }
+                    if (iteration == 1) {
+                        Assert.Equal(0, context.CountToken);
+                    }
+                    return false;
+                }));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ObjectStart, JsonTokenKind.ObjectEnd }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_002_EmptyArray() {
             string json = "[]";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_003_true() {
             string json = "true";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.True }, GetTokenKinds(context));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.True }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_004_false() {
             string json = "false";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.False }, GetTokenKinds(context));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.False }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_004_null() {
             string json = "null";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.Null }, GetTokenKinds(context));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.Null }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_005_Number() {
             string json = "1";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.Number }, GetTokenKinds(context));
+            Assert.Equal(
+               1,
+               InvokeParse(json, (context, iteration) => {
+                   Assert.Equal(new JsonTokenKind[] { JsonTokenKind.Number }, GetTokenKinds(context));
+                   return false;
+               }));
         }
 
         [Fact]
         public void JsonParserUtf8_010_Boolean1Array() {
             string json = "[true,]";
-            var context = InvokeParse(json);
-            Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+                    return false;
+                }));
         }
 
         [Fact]
         public void JsonParserUtf8_011_BooleanManyArray() {
-
             string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
-            var context = InvokeParse(json);
-            //Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, GetTokenKinds(context));
+            var act = new List<JsonTokenKind>();
+            Assert.Equal(
+                1,
+                InvokeParse(json, (context, iteration) => {
+                    act.AddRange(GetTokenKinds(context));
+
+                    //Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, act);
+                    return (act.Last() == JsonTokenKind.ArrayEnd) || iteration == 1000;
+                }));
+            Assert.Equal(JsonTokenKind.ArrayStart, act.First());
+            Assert.Equal(JsonTokenKind.ArrayEnd, act.Last());
+            for (var idx = 1; idx < act.Count-1; idx += 2) {
+                Assert.Equal(JsonTokenKind.True, act[idx]);
+                Assert.Equal(JsonTokenKind.ValueSep, act[idx + 1]);
+            }
         }
+        /*
+        */
 
         private JsonTokenKind[] GetTokenKinds(JsonReaderContext context) {
             var result = new JsonTokenKind[context.CountToken];
-            for (int idx = 0; (idx < context.CountToken); idx++) {
+            for (int idx = context.ReadIndexToken; idx < context.FeedIndexToken; idx++) {
                 result[idx] = context.Tokens[idx].Kind;
             }
             return result;
         }
-        /*
-         private JsonTokenKind[] GetTokenKinds(JsonReaderContext context) {
-            for (int idx=0; (idx<context.CountToken) ; idx++ ) {
-            }
-            Assert.Equal(context.CountToken);
-        }
-         */
+        //private JsonTokenKind[] GetTokenKinds(JsonReaderContext context) {
+        //    for (int idx = 0; (idx < context.CountToken); idx++) {
+        //    }
+        //    Assert.Equal(context.CountToken);
+        //}
 
-        private static JsonReaderContext InvokeParse(string json) {
+        private static int InvokeParse(string json, Func<JsonReaderContext, int, bool> action) {
             var parser = new JsonParserUtf8();
             JsonText jsonText = new JsonText(json, false);
             var utf8 = jsonText.GetUtf8();
-            JsonReaderContext context = new JsonReaderContext();
-            for (int i = 0; i < 10000; i++) {
-                BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
-                context = new JsonReaderContext();
-                parser.Parse(src, context, true);
-                while (context.Tokens[context.IndexToken].Kind == JsonTokenKind.ArrayEnd) {
-                    parser.Parse(context);
-                }
+            JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
+            BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
+            context = new JsonReaderContext();
+            int iteration = 0;
+            parser.Parse(src, context, true);
+            while (action(context, iteration)) {
+                iteration++;
+                parser.Parse(context);
             }
-            return context;
+            JsonReaderContextPool.Instance.Return(context);
+            return iteration;
         }
     }
 }

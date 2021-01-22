@@ -50,13 +50,7 @@ namespace Brimborium.Json {
         public virtual void Advance(int count) {
             this.Buffer.Offset += count;
         }
-
-        //protected virtual void WriteDown(int nextRequestedCount) {
-        //    // after
-        //    this.Buffer.Offset = 0;
-        //    this.Buffer.Length = this.Buffer.Buffer.Length;
-        //}
-
+#error sync
         protected override void Disposing(bool disposing) {
             this.Buffer.Return();
         }

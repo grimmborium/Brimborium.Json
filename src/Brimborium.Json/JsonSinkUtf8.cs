@@ -11,7 +11,7 @@ namespace Brimborium.Json {
 
         public override void Write(JsonText jsonText) {
             var src = jsonText.GetSpanUtf8();
-            var dst = this.GetFreeSpan(src.Length, true);
+            var dst = this.GetFeedSpan(src.Length, true);
             src.CopyTo(dst);
         }
 
@@ -22,10 +22,10 @@ namespace Brimborium.Json {
             return buffer;
         }
 
-        public virtual ref BoundedByteArray GetFreeBuffer(int count) {
-            if (count > Buffer.Free) {
+        public virtual ref BoundedByteArray GetFeedBuffer(int count) {
+            if (count > Buffer.FeedLength) {
                 WriteDown(count);
-                if (count > Buffer.Free) {
+                if (count > Buffer.FeedLength) {
                     this.Buffer.Return();
                     this.Buffer = BoundedByteArray.Rent(count);
                 }
@@ -33,29 +33,26 @@ namespace Brimborium.Json {
             return ref Buffer;
         }
 
-        public virtual Span<byte> GetFreeSpan(int count, bool advance) {
-            if (count > Buffer.Free) {
+        public virtual Span<byte> GetFeedSpan(int count, bool advance) {
+            if (count > Buffer.FeedLength) {
                 WriteDown(count);
-                if (this.Buffer.Length < count) {
-                    this.Buffer.Return();
-                    this.Buffer = BoundedByteArray.Rent(count);
+                if (this.Buffer.FeedLength < count) {
+                    this.Buffer.EnsureCapacity(count);
                 }
             }
-            if (count <= Buffer.Free) {
+            if (count <= Buffer.FeedLength) {
+                var result = Buffer.GetFeedSpan();
                 if (advance) {
-                    var result = Buffer.GetRightSpan();
-                    Buffer.Offset += count;
-                    return result;
-                } else {
-                    return Buffer.GetRightSpan();
+                    Buffer.FeedOffset += count;
                 }
+                return result;
             } else {
                 throw new InvalidOperationException();
             }
         }
 
         public virtual void Advance(int count) {
-            this.Buffer.Offset += count;
+            this.Buffer.FeedOffset += count;
         }
 
         //protected virtual void WriteDown(int nextRequestedCount) {

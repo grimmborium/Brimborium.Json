@@ -7,30 +7,32 @@ namespace Brimborium.Json {
 
     public class JsonSource : IDisposable {
         private int _IsDisposed;
-        public readonly JsonConfiguration Configuration;
-
-        public JsonToken JsonToken;
+        public JsonConfiguration Configuration;
+        public JsonReaderContext Context;
 
         public JsonSource(JsonConfiguration configuration) {
             this.Configuration = configuration;
+            this.Context = JsonReaderContextPool.Instance.Rent();
         }
 
-        public virtual bool TryGetNextToken() {
+        public bool HasToken() => this.Context.HasToken();
+
+        public JsonToken GetCurrentToken() => this.Context.GetCurrentToken();
+
+        public JsonToken ReadCurrentToken() => this.Context.ReadCurrentToken();
+
+        public bool TryPeekToken(out JsonToken jsonToken) => this.Context.TryPeekToken(out jsonToken);
+
+        public bool TryReadToken(out JsonToken jsonToken) => this.Context.TryReadToken(out jsonToken);
+
+        public ValueTask<JsonToken> ReadCurrentTokenAsync() {
             throw new NotImplementedException();
         }
 
-        public virtual ValueTask GetNextTokenAsync() {
-            throw new NotImplementedException();
-        }
 
-        /*
-        public virtual object Parse(Type? type) {
+        public virtual Task ReadParseAsync() {
             throw new NotImplementedException();
         }
-        public virtual ValueTask<object> ParseAsync(Type? type) {
-            throw new NotImplementedException();
-        }
-        */
 
         protected bool IsDisposed => this._IsDisposed != 0;
 
@@ -47,6 +49,9 @@ namespace Brimborium.Json {
         }
 
         protected virtual void Disposing(bool disposing) {
+            JsonReaderContextPool.Instance.Return(this.Context);
+            this.Configuration = null!;
+            this.Context = null!;
         }
 
         //~JsonSink() {
@@ -103,6 +108,15 @@ namespace Brimborium.Json {
         public JsonSourceUtf8SyncStream(System.IO.Stream stream, JsonConfiguration configuration)
             : base(configuration) {
             this._Stream = stream;
+        }
+
+        public override async Task ReadParseAsync() {
+            this.Context.BoundedByteArray.AdjustBeforeFeeding(4096);
+            var read = await this._Stream.ReadAsync(
+                this.Context.BoundedByteArray.Buffer, 
+                this.Context.BoundedByteArray.FeedOffset, 
+                this.Context.BoundedByteArray.FeedLength);
+            this.Context.BoundedByteArray.AdjustAfterFeeding(read);
         }
     }
 

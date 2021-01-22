@@ -7,10 +7,12 @@ namespace Brimborium.Json {
     /// </summary>
     public class JsonSink : IDisposable {
         private int _IsDisposed;
-        public readonly JsonConfiguration Configuration;
+        public  JsonConfiguration Configuration;
+        public JsonWriterContext Context;
 
         public JsonSink(JsonConfiguration configuration) {
             this.Configuration = configuration;
+            this.Context = new JsonWriterContext();
         }
         //// think of
         //public virtual void Serialize<T>(T value) {

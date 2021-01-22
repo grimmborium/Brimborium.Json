@@ -18,7 +18,7 @@ namespace Brimborium.Json {
         }
 
         protected override void WriteDown(int nextRequestedCount) {
-            if (this.Buffer.Offset > 0) {
+            if (this.Buffer.ReadLength > 0) {
                 int indexWriteTo;
                 lock (this._BufferWriteAsync) {
                     indexWriteTo = this._BufferWriteAsync.Add(ref this.Buffer);
@@ -38,8 +38,8 @@ namespace Brimborium.Json {
             try {
                 await _Stream.WriteAsync(
                     _BufferWriteAsync.Items[indexWriteTo].Buffer,
-                    0,
-                    _BufferWriteAsync.Items[indexWriteTo].Offset);
+                    _BufferWriteAsync.Items[indexWriteTo].ReadOffset,
+                    _BufferWriteAsync.Items[indexWriteTo].ReadLength);
 
                 this._BufferWriteAsync.Items[indexWriteTo].Return();
                 tsc.TrySetResult(indexWriteTo);
@@ -53,7 +53,7 @@ namespace Brimborium.Json {
         }
 
         public override async Task FlushAsync() {
-            if (this.Buffer.Offset > 0) {
+            if (this.Buffer.FeedOffset > 0) {
                 this.WriteDown(-1);
             }
             await this._Task;
