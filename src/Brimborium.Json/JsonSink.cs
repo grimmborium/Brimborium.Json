@@ -22,9 +22,6 @@ namespace Brimborium.Json {
         public virtual void Write(JsonText jsonText) { }
 
         protected virtual void WriteDown(int nextRequestedCount) {
-            // after
-            // this.Buffer.Offset = 0;
-            // this.Buffer.Length = this.Buffer.Buffer.Length;
         }
         public virtual void Flush() {
             this.WriteDown(-1);

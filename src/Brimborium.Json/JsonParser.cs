@@ -2,7 +2,7 @@
 
 namespace Brimborium.Json {
     public struct JsonParserUtf8 {
-        enum State {
+        public enum ParserState {
             Start = 0,
             T,
             TR,
@@ -139,6 +139,30 @@ namespace Brimborium.Json {
         null
         "([^"] | \\u[0-9]{4} | \r | \n | \t | \")*"
         */
+        public const int InitialCharBufferSize = 64 * 1024;
+        public int lineNo;
+        public int lineOffset;
+        public int numberSign;
+        public ulong uNumber;
+        public long sNumber;
+        public int idxToken;
+        public int offset;
+        public ParserState State;
+        public int offsetTokenStart;
+        public bool FinalContent;
+
+        public JsonParserUtf8(bool finalContent) {
+            lineNo = 1;
+            lineOffset = 0;
+            numberSign = 0;
+            uNumber = 0;
+            sNumber = 0;
+            idxToken = 0;
+            offset = -1;
+            State = 0;
+            offsetTokenStart = 0;
+            FinalContent = finalContent;
+        }
         public void Parse(BoundedByteArray src, JsonReaderContext context, bool finalContent) {
             context.BoundedByteArray = src;
             context.FinalContent = finalContent;
@@ -150,24 +174,16 @@ namespace Brimborium.Json {
             bool finalContent = context.FinalContent;
 
             int tokensLength = context.Tokens.Length;
-            int idxToken = 0;
-            int offset = -1;
-            int offsetTokenStart = 0;
             //
             byte current;
-            var iState = context.SaveStateUtf8.State;
-            if (((int)State.Start <= iState) && (iState <= (int)State.EOF)) {
-                // OK
-            } else {
-                throw new InvalidOperationException("Invalid Parser state");
-            }
+
+            ParserState state = this.State;
             //
-            // goto hell
+            // now goto hell
             //
-            State state = (State)iState;
             while (++offset < length) {
                 switch (state) {
-                    case State.Start: {
+                    case ParserState.Start: {
                             switch (current = usedSpan[offset]) {
                                 case 1:
                                 case 2:
@@ -215,20 +231,20 @@ namespace Brimborium.Json {
                                             case 9: /* \t */
                                                 continue;
                                             case 10: /* \n */
-                                                context.SaveStateUtf8.lineNo++;
-                                                context.SaveStateUtf8.lineOffset = offset + 1;
+                                                this.lineNo++;
+                                                this.lineOffset = offset + 1;
                                                 continue;
                                             case 11:
                                             case 12:
                                                 continue;
                                             case 13: /* \r */
-                                                context.SaveStateUtf8.lineNo++;
+                                                this.lineNo++;
                                                 if ((offset + 1) < length) {
                                                     if (usedSpan[offset + 1] == 10 /* \n */) {
                                                         ++offset;
                                                     }
                                                 }
-                                                context.SaveStateUtf8.lineOffset = offset + 1;
+                                                this.lineOffset = offset + 1;
                                                 continue;
                                             case 14:
                                             case 15:
@@ -265,7 +281,7 @@ namespace Brimborium.Json {
                                     offsetTokenStart = offset;
                                     break;
                                 case 34: /* " */
-                                    state = State.QuoteStart;
+                                    state = ParserState.QuoteStart;
                                     offsetTokenStart = offset;
                                     break;
                                 case 35: /* # */
@@ -278,32 +294,33 @@ namespace Brimborium.Json {
                                 case 42: /* * */
                                     break;
                                 case 43: /* + */
-                                    state = State.NumberSignPlus;
-                                    context.SaveStateUtf8.numberSign = 1;
+                                    state = ParserState.NumberSignPlus;
+                                    this.numberSign = 1;
                                     offsetTokenStart = offset;
                                     continue;
 
                                 case 44: /* , */
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.ValueSep);
+                                    context.BoundedCharArray.GlobalProtected = -1;
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
                                     if (finalContent && (length - offset) < 128) {
                                         continue;
-                                    } else { 
+                                    } else {
                                         goto lblDone;
                                     }
 
                                 case 45: /* - */
-                                    state = State.NumberSignMinus;
-                                    context.SaveStateUtf8.numberSign = -1;
+                                    state = ParserState.NumberSignMinus;
+                                    this.numberSign = -1;
                                     offsetTokenStart = offset;
                                     continue;
                                 case 46: /* . */
-                                    state = State.NumberIEEE;
-                                    context.SaveStateUtf8.numberSign = 1;
+                                    state = ParserState.NumberIEEE;
+                                    this.numberSign = 1;
                                     offsetTokenStart = offset;
                                     continue;
                                 case 47: /* / */
-                                    state = State.Slash;
+                                    state = ParserState.Slash;
                                     offsetTokenStart = offset;
                                     break;
 
@@ -317,10 +334,10 @@ namespace Brimborium.Json {
                                 case 55: /* 7 */
                                 case 56: /* 8 */
                                 case 57: /* 9 */
-                                    state = State.NumberInt;
-                                    context.SaveStateUtf8.numberSign = 1;
+                                    state = ParserState.NumberInt;
+                                    this.numberSign = 1;
                                     offsetTokenStart = offset;
-                                    context.SaveStateUtf8.uNumber = (ulong)(current -/* '0' */48);
+                                    this.uNumber = (ulong)(current -/* '0' */48);
                                     continue;
 
                                 case 58: /* : */
@@ -341,7 +358,7 @@ namespace Brimborium.Json {
                                 case 69: /* E */
                                     break;
                                 case 70: /* F */
-                                    state = State.F;
+                                    state = ParserState.F;
                                     offsetTokenStart = offset;
                                     continue;
                                 case 71: /* G */
@@ -353,7 +370,7 @@ namespace Brimborium.Json {
                                 case 77: /* M */
                                     break;
                                 case 78: /* N */
-                                    state = State.N;
+                                    state = ParserState.N;
                                     offsetTokenStart = offset;
                                     continue;
                                 case 79: /* O */
@@ -363,7 +380,7 @@ namespace Brimborium.Json {
                                 case 83: /* S */
                                     break;
                                 case 84: /* T */
-                                    state = State.T;
+                                    state = ParserState.T;
                                     offsetTokenStart = offset;
                                     continue;
                                 case 85: /* U */
@@ -384,6 +401,8 @@ namespace Brimborium.Json {
                                     break;
 
                                 case 93: /* ] */
+                                    context.BoundedCharArray.GlobalProtected = -1;
+                                    //
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.ArrayEnd);
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
                                     offsetTokenStart = offset + 1;
@@ -400,7 +419,7 @@ namespace Brimborium.Json {
                                     break;
 
                                 case 102: /* f */
-                                    state = State.F;
+                                    state = ParserState.F;
                                     offsetTokenStart = offset;
                                     continue;
 
@@ -414,7 +433,7 @@ namespace Brimborium.Json {
                                     break;
 
                                 case 110: /* n */
-                                    state = State.N;
+                                    state = ParserState.N;
                                     offsetTokenStart = offset;
                                     continue;
 
@@ -426,7 +445,7 @@ namespace Brimborium.Json {
                                     break;
 
                                 case 116: /* t */
-                                    state = State.T;
+                                    state = ParserState.T;
                                     offsetTokenStart = offset;
                                     continue;
 
@@ -447,6 +466,7 @@ namespace Brimborium.Json {
                                 case 124: /* | */
                                     break;
                                 case 125: /* } */
+                                    context.BoundedCharArray.GlobalProtected = -1;
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.ObjectEnd);
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
                                     offsetTokenStart = offset + 1;
@@ -463,11 +483,11 @@ namespace Brimborium.Json {
                             goto lblUnexpectedChar;
                         }
 
-                    case State.T:
+                    case ParserState.T:
                         switch (current = usedSpan[offset]) {
                             case (byte)'R':
                             case (byte)'r':
-                                state = State.TR;
+                                state = ParserState.TR;
                                 if (++offset < length) {
                                     goto lblTR;
                                 } else {
@@ -478,12 +498,12 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.TR:
+                    case ParserState.TR:
                         lblTR:
                         switch (current = usedSpan[offset]) {
                             case (byte)'U':
                             case (byte)'u':
-                                state = State.TRU;
+                                state = ParserState.TRU;
                                 if (++offset < length) {
                                     goto lblTRU;
                                 } else {
@@ -494,7 +514,7 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.TRU:
+                    case ParserState.TRU:
                         lblTRU:
                         switch (current = usedSpan[offset]) {
                             case (byte)'E':
@@ -507,7 +527,7 @@ namespace Brimborium.Json {
                                     ) {
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.True);
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
-                                    state = State.Start;
+                                    state = ParserState.Start;
                                     offsetTokenStart = offset1;
                                     continue;
                                 } else {
@@ -518,11 +538,11 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.F:
+                    case ParserState.F:
                         switch (current = usedSpan[offset]) {
                             case (byte)'A':
                             case (byte)'a':
-                                state = State.TRU;
+                                state = ParserState.TRU;
                                 if (++offset < length) {
                                     goto lblFA;
                                 } else {
@@ -533,12 +553,12 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.FA:
+                    case ParserState.FA:
                         lblFA:
                         switch (current = usedSpan[offset]) {
                             case (byte)'L':
                             case (byte)'l':
-                                state = State.FAL;
+                                state = ParserState.FAL;
                                 if (++offset < length) {
                                     goto lblFAL;
                                 } else {
@@ -549,12 +569,12 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.FAL:
+                    case ParserState.FAL:
                         lblFAL:
                         switch (current = usedSpan[offset]) {
                             case (byte)'S':
                             case (byte)'s':
-                                state = State.FALS;
+                                state = ParserState.FALS;
                                 if (++offset < length) {
                                     goto lblFALS;
                                 } else {
@@ -565,7 +585,7 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.FALS:
+                    case ParserState.FALS:
                         lblFALS:
                         switch (current = usedSpan[offset]) {
                             case (byte)'E':
@@ -576,7 +596,7 @@ namespace Brimborium.Json {
                                     ) {
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.False);
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
-                                    state = State.Start;
+                                    state = ParserState.Start;
                                     offsetTokenStart = offset;
                                     continue;
                                 } else {
@@ -587,11 +607,11 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.N:
+                    case ParserState.N:
                         switch (current = usedSpan[offset]) {
                             case (byte)'U':
                             case (byte)'u':
-                                state = State.NU;
+                                state = ParserState.NU;
                                 if (++offset < length) {
                                     goto lblNU;
                                 } else {
@@ -602,12 +622,12 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.NU:
+                    case ParserState.NU:
                         lblNU:
                         switch (current = usedSpan[offset]) {
                             case (byte)'L':
                             case (byte)'l':
-                                state = State.NUL;
+                                state = ParserState.NUL;
                                 if (++offset < length) {
                                     goto lblNUL;
                                 } else {
@@ -618,7 +638,7 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.NUL:
+                    case ParserState.NUL:
                         lblNUL:
                         switch (current = usedSpan[offset]) {
                             case (byte)'L':
@@ -629,7 +649,7 @@ namespace Brimborium.Json {
                                     ) {
                                     context.Tokens[idxToken++].SetKind(JsonTokenKind.Null);
                                     if (idxToken >= tokensLength) { goto lblTokensLength; }
-                                    state = State.Start;
+                                    state = ParserState.Start;
                                     continue;
                                 } else {
                                     --offset;
@@ -639,54 +659,72 @@ namespace Brimborium.Json {
                                 goto lblUnexpectedChar;
                         }
 
-                    case State.QuoteStart:
+                    case ParserState.QuoteStart:
+                        context.BoundedCharArray.GlobalProtected = offset + context.BoundedCharArray.GlobalShift;
                         --offset;
                         while (++offset < length) {
                             switch (current = usedSpan[offset]) {
                                 case 10: { /* \n */
-                                        context.SaveStateUtf8.lineNo++;
-                                        context.SaveStateUtf8.lineOffset = offset + 1;
+                                        this.lineNo++;
+                                        this.lineOffset = offset + 1;
                                     }
                                     continue;
 
                                 case 13: { /* \r */
-                                        context.SaveStateUtf8.lineNo++;
+                                        this.lineNo++;
                                         if ((offset + 1) < length) {
                                             current = usedSpan[offset + 1];
                                             if (current == 10) {
                                                 ++offset;
                                             }
                                         }
-                                        context.SaveStateUtf8.lineOffset = offset + 1;
+                                        this.lineOffset = offset + 1;
                                     }
                                     continue;
 
                                 case (byte)'"': {
                                         context.Tokens[idxToken++].SetKindUtf8(JsonTokenKind.StringSimpleUtf8, offsetTokenStart + 1, offset - 1);
                                         if (idxToken >= tokensLength) { goto lblTokensLength; }
-                                        state = State.Start;
+                                        state = ParserState.Start;
                                         offsetTokenStart = offset + 1;
                                     }
                                     goto lblQuoteStartNext;
 
 
                                 case (byte)'\\': {
-                                        state = State.QuoteBackSlash;
-                                        context.BoundedCharArray.EnsureCapacity(System.Math.Max(2 * (offset - offsetTokenStart), 64 * 1024));
-                                        var countChars = StringUtility.ConvertFromUtf8(usedSpan.Slice(offsetTokenStart, offset - offsetTokenStart - 1), context.BoundedCharArray.GetRightSpan());
-                                        context.BoundedCharArray.Offset += countChars;
+                                        --offset;
+                                        state = ParserState.QuoteContentComplex;
+                                        //state = ParserState.QuoteBackSlash;
+                                        var len = (offset - offsetTokenStart);
+                                        if (len > 0) {
+                                            context.BoundedCharArray.AdjustBeforeFeeding(
+                                            len,
+                                            InitialCharBufferSize
+                                            );
+                                            var countChars = StringUtility.ConvertFromUtf8(
+                                                usedSpan.Slice(offsetTokenStart, len),
+                                                context.BoundedCharArray.GetFeedSpan());
+                                            context.BoundedCharArray.AdjustAfterFeeding(countChars);
+                                        }
                                     }
                                     goto lblQuoteStartNext;
 
                                 default:
                                     if (current < 127) {
+                                        // short loop
+                                        // add key magic here 
                                         continue;
                                     } else {
                                         --offset;
-                                        state = State.QuoteContentComplex;
-                                        context.BoundedCharArray.EnsureCapacity(System.Math.Max(2 * (offset - offsetTokenStart), 64 * 1024));
-                                        var countChars = StringUtility.ConvertFromUtf8(usedSpan.Slice(offsetTokenStart, offset - offsetTokenStart - 1), context.BoundedCharArray.GetRightSpan());
-                                        context.BoundedCharArray.Offset += countChars;
+                                        state = ParserState.QuoteContentComplex;
+                                        var len = (offset - offsetTokenStart);
+                                        if (len > 0) {
+                                            context.BoundedCharArray.AdjustBeforeFeeding(len, InitialCharBufferSize);
+                                            var countChars = StringUtility.ConvertFromUtf8(
+                                                usedSpan.Slice(offsetTokenStart, len),
+                                                context.BoundedCharArray.GetFeedSpan());
+                                            context.BoundedCharArray.AdjustAfterFeeding(countChars);
+                                        }
                                         goto lblQuoteStartNext;
                                     }
                             }
@@ -694,23 +732,23 @@ namespace Brimborium.Json {
                         lblQuoteStartNext:
                         break;
 
-                    case State.QuoteContentComplex:
+                    case ParserState.QuoteContentComplex:
                         --offset;
                         while (++offset < length) {
                             switch (current = usedSpan[offset]) {
                                 case 10: /* \n */
-                                    context.SaveStateUtf8.lineNo++;
-                                    context.SaveStateUtf8.lineOffset = offset + 1;
+                                    this.lineNo++;
+                                    this.lineOffset = offset + 1;
                                     continue;
                                 case 13: /* \r */
-                                    context.SaveStateUtf8.lineNo++;
+                                    this.lineNo++;
                                     if ((offset + 1) < length) {
                                         current = usedSpan[offset + 1];
                                         if (current == 10) {
                                             ++offset;
                                         }
                                     }
-                                    context.SaveStateUtf8.lineOffset = offset + 1;
+                                    this.lineOffset = offset + 1;
                                     continue;
 
                                 case (byte)'"':
@@ -720,7 +758,7 @@ namespace Brimborium.Json {
                                        ) {
                                         context.Tokens[idxToken++].SetKind(JsonTokenKind.StringSimpleUtf8);
                                         if (idxToken >= tokensLength) { goto lblTokensLength; }
-                                        state = State.Start;
+                                        state = ParserState.Start;
                                         goto lblQuoteContentComplexNext;
                                     } else {
                                         --offset;
@@ -728,7 +766,7 @@ namespace Brimborium.Json {
                                     }
 
                                 case (byte)'\\':
-                                    state = State.QuoteBackSlash;
+                                    state = ParserState.QuoteBackSlash;
                                     goto lblQuoteContentComplexNext;
 
                                 default:
@@ -739,10 +777,10 @@ namespace Brimborium.Json {
                         lblQuoteContentComplexNext:
                         break;
 
-                    case State.QuoteBackSlash:
+                    case ParserState.QuoteBackSlash:
                         continue;
 
-                    case State.Slash:
+                    case ParserState.Slash:
                         switch (current = usedSpan[offset]) {
                             case (byte)'/':
                                 break;
@@ -751,10 +789,10 @@ namespace Brimborium.Json {
                         }
                         break;
 
-                    case State.NumberSignMinus:
-                    case State.NumberSignPlus:
+                    case ParserState.NumberSignMinus:
+                    case ParserState.NumberSignPlus:
                         break;
-                    case State.NumberInt:
+                    case ParserState.NumberInt:
                         break;
                     default:
                         break;
@@ -762,10 +800,11 @@ namespace Brimborium.Json {
             }
             //
             lblDone:
-            context.SaveStateUtf8.State = (int)state;
-            context.SaveStateUtf8.idxToken = idxToken;
-            context.SaveStateUtf8.offset = offset;
-            context.SaveStateUtf8.offsetTokenStart = offsetTokenStart;
+            this.State = state;
+            //this.State = (int)state;
+            //this.idxToken = idxToken;
+            //this.offset = offset;
+            //this.offsetTokenStart = offsetTokenStart;
             context.ReadIndexToken = 0;
             context.FeedIndexToken = idxToken;
             return;
@@ -774,7 +813,7 @@ namespace Brimborium.Json {
             throw new NotImplementedException($"TODO {offset}");
 
             lblUnexpectedChar:
-            throw new ArgumentException($"Unexpected Char {current} L:{context.SaveStateUtf8.lineNo}; C:{offset - context.SaveStateUtf8.lineOffset + 1};");
+            throw new ArgumentException($"Unexpected Char {current} L:{this.lineNo}; C:{offset - this.lineOffset + 1};");
 
             lblTokensLength:
             throw new InvalidOperationException("TokensLength too big.");

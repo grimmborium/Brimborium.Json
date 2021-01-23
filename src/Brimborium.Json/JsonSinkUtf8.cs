@@ -2,6 +2,7 @@
 
 namespace Brimborium.Json {
     public class JsonSinkUtf8 : JsonSink {
+        public const int DefaultInitialLength = 64 * 1024;
         protected internal BoundedByteArray Buffer;
 
         protected JsonSinkUtf8(JsonConfiguration configuration)
@@ -25,9 +26,8 @@ namespace Brimborium.Json {
         public virtual ref BoundedByteArray GetFeedBuffer(int count) {
             if (count > Buffer.FeedLength) {
                 WriteDown(count);
-                if (count > Buffer.FeedLength) {
-                    this.Buffer.Return();
-                    this.Buffer = BoundedByteArray.Rent(count);
+                if (this.Buffer.FeedLength < count) {
+                    this.Buffer.AdjustBeforeFeeding(count, DefaultInitialLength);
                 }
             }
             return ref Buffer;
@@ -37,13 +37,13 @@ namespace Brimborium.Json {
             if (count > Buffer.FeedLength) {
                 WriteDown(count);
                 if (this.Buffer.FeedLength < count) {
-                    this.Buffer.EnsureCapacity(count);
+                    this.Buffer.AdjustBeforeFeeding(count, DefaultInitialLength);
                 }
             }
             if (count <= Buffer.FeedLength) {
                 var result = Buffer.GetFeedSpan();
                 if (advance) {
-                    Buffer.FeedOffset += count;
+                    Buffer.AdjustAfterFeeding(count);
                 }
                 return result;
             } else {
@@ -55,13 +55,8 @@ namespace Brimborium.Json {
             this.Buffer.FeedOffset += count;
         }
 
-        //protected virtual void WriteDown(int nextRequestedCount) {
-        //    // after
-        //    this.Buffer.Offset = 0;
-        //    this.Buffer.Length = this.Buffer.Buffer.Length;
-        //}
-
         protected override void Disposing(bool disposing) {
+            base.Disposing(disposing);
             this.Buffer.Return();
         }
     }

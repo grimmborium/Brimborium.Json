@@ -10,11 +10,10 @@ namespace Brimborium.Json {
         }
 
         protected override void WriteDown(int nextRequestedCount) {
-            if (Buffer.Offset > 0) {
-                Target.Append(Buffer.Buffer, 0, Buffer.Offset);
-
-                this.Buffer.Offset = 0;
-                this.Buffer.Length = this.Buffer.Buffer.Length;
+                var readLength = Buffer.ReadLength;
+            if (readLength > 0) {
+                this.Target.Append(Buffer.Buffer, Buffer.ReadOffset, readLength);
+                Buffer.AdjustAfterReading(readLength);
             }
         }
 

@@ -104,6 +104,7 @@ namespace Brimborium.Json {
 
     public class JsonSourceUtf8SyncStream : JsonSourceUtf8 {
         private readonly Stream _Stream;
+        public const int DefaultInitialLength = 64 * 1024;
 
         public JsonSourceUtf8SyncStream(System.IO.Stream stream, JsonConfiguration configuration)
             : base(configuration) {
@@ -111,10 +112,10 @@ namespace Brimborium.Json {
         }
 
         public override async Task ReadParseAsync() {
-            this.Context.BoundedByteArray.AdjustBeforeFeeding(4096);
+            this.Context.BoundedByteArray.AdjustBeforeFeeding(4096, DefaultInitialLength);
             var read = await this._Stream.ReadAsync(
-                this.Context.BoundedByteArray.Buffer, 
-                this.Context.BoundedByteArray.FeedOffset, 
+                this.Context.BoundedByteArray.Buffer,
+                this.Context.BoundedByteArray.FeedOffset,
                 this.Context.BoundedByteArray.FeedLength);
             this.Context.BoundedByteArray.AdjustAfterFeeding(read);
         }

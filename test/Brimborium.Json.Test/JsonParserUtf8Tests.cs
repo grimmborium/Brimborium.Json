@@ -25,7 +25,7 @@ namespace Brimborium.Json {
                         return true;
                     }
                     if (iteration == 1) {
-                        Assert.Equal(0, context.CountToken);
+#warning                        Assert.Equal(0, context.CountToken);
                     }
                     return false;
                 }));
@@ -105,21 +105,36 @@ namespace Brimborium.Json {
 
         [Fact]
         public void JsonParserUtf8_011_BooleanManyArray() {
-            string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            //string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            string json = "[true,true,true]";
             var act = new List<JsonTokenKind>();
-            Assert.Equal(
-                1,
-                InvokeParse(json, (context, iteration) => {
-                    act.AddRange(GetTokenKinds(context));
-
-                    //Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, act);
-                    return (act.Last() == JsonTokenKind.ArrayEnd) || iteration == 1000;
-                }));
+            var loops=InvokeParse(json, (context, iteration) => {
+                act.AddRange(GetTokenKinds(context));
+                context.FeedIndexToken = 0;
+                context.ReadIndexToken = 0;
+                //Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ArrayStart, JsonTokenKind.True, JsonTokenKind.ValueSep, JsonTokenKind.ArrayEnd }, act);
+                return (act.Last() != JsonTokenKind.ArrayEnd) && iteration < 10000;
+            });
+            Assert.True(loops<500,$"loops {loops}");
             Assert.Equal(JsonTokenKind.ArrayStart, act.First());
             Assert.Equal(JsonTokenKind.ArrayEnd, act.Last());
-            for (var idx = 1; idx < act.Count-1; idx += 2) {
+            for (var idx = 1; idx < act.Count - 1; idx += 2) {
                 Assert.Equal(JsonTokenKind.True, act[idx]);
                 Assert.Equal(JsonTokenKind.ValueSep, act[idx + 1]);
+            }
+        }
+
+        [Fact]
+        public void JsonParserUtf8_Speed() {
+            string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            for (int loop = 0; loop < 1000; loop++) {
+                var act = new List<JsonTokenKind>();
+                InvokeParse(json, (context, iteration) => {
+                    act.AddRange(GetTokenKinds(context));
+                    context.FeedIndexToken = 0;
+                    context.ReadIndexToken = 0;
+                    return (act.Last() != JsonTokenKind.ArrayEnd) && iteration < 1000;
+                });
             }
         }
         /*
@@ -152,7 +167,7 @@ namespace Brimborium.Json {
                 parser.Parse(context);
             }
             JsonReaderContextPool.Instance.Return(context);
-            return iteration;
+            return iteration + 1;
         }
     }
 }
