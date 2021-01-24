@@ -91,5 +91,4 @@ namespace Brimborium.Json {
         //    public abstract void WriteValueSeparator();
         //}
     }
-    public class JsonWriterContext { }
 }

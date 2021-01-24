@@ -49,6 +49,10 @@ namespace Brimborium.Json {
             this.LengthUtf8 = offsetEnd - offsetStart;
             this.LengthUtf16 = 0;
         }
+
+        public override string ToString() {
+            return $"JsonToken: {this.Kind}";
+        }
     }
 
     public enum JsonTokenKind : int {

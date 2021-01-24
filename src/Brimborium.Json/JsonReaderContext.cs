@@ -1,5 +1,6 @@
 ﻿#pragma warning disable IDE0041 // Use 'is null' check
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Brimborium.Json {
     public class JsonReaderContext {
@@ -24,26 +25,32 @@ namespace Brimborium.Json {
 
             this.BoundedByteArray = BoundedByteArray.Empty();
             this.BoundedCharArray = BoundedCharArray.Empty();
-            //this.SaveStateUtf8 = JsonReaderContextStateUtf8.Start();
             this.ReadIndexToken = 0;
             this.FeedIndexToken = 0;
         }
 
         public void Reset() {
-            this.SaveStateUtf8 = JsonReaderContextStateUtf8.Start();
-            r.lineNo = 1;
-            r.lineOffset = 0;
-            r.numberSign = 0;
-            r.uNumber = 0;
-            r.sNumber = 0;
-            r.idxToken = 0;
-            r.offset = -1;
-            r.State = 0;
-            r.offsetTokenStart = 0;
-
             this.ReadIndexToken = 0;
             this.FeedIndexToken = 0;
         }
+
+        public JsonToken CurrentToken
+            => TokenEOF;
+
+        public bool ReadToken() {
+            return true;
+        }
+
+        public bool EnsureTokens(int nbr) {
+            return true;
+        }
+
+        public async ValueTask EnsureTokensAsync(int nbr = 1) {
+            await Task.CompletedTask;
+        }
+
+
+
 
         public bool HasToken() => (ReadIndexToken < FeedIndexToken);
 

@@ -154,17 +154,18 @@ namespace Brimborium.Json {
         //}
 
         private static int InvokeParse(string json, Func<JsonReaderContext, int, bool> action) {
-            var parser = new JsonParserUtf8();
+            JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
+            var parser = new JsonParserUtf8(context);
             JsonText jsonText = new JsonText(json, false);
             var utf8 = jsonText.GetUtf8();
-            JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
             BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
             context = new JsonReaderContext();
             int iteration = 0;
-            parser.Parse(src, context, true);
+            parser.Parse(src, true);
             while (action(context, iteration)) {
                 iteration++;
-                parser.Parse(context);
+#warning not right
+                parser.Parse();
             }
             JsonReaderContextPool.Instance.Return(context);
             return iteration + 1;

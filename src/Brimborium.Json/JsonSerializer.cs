@@ -7,11 +7,10 @@ using System.IO;
 using System.Threading.Tasks;
 
 namespace Brimborium.Json {
-    public struct JsonSerializerInfo<T> {
+    public class JsonSerializerInfo<T> {
         public readonly Type StaticType;
 
         public JsonSerializer<T>? StaticJsonSerializer;
-
 
         public Type? DynamicType;
 
@@ -27,17 +26,42 @@ namespace Brimborium.Json {
 
 
     public class JsonSerializerFactory {
+        private static JsonSerializer[]? _EmptyArrayJsonSerializer;
+        private static JsonSerializerDynamicFactory[]? _EmptyArrayJsonSerializerDynamicFactory;
+
         public JsonSerializerFactory() {
         }
 
-        public virtual JsonSerializer[] CreateUtf8(JsonConfiguration configuration) { return new JsonSerializer[0]; }
+        public virtual JsonSerializer[] CreateJsonSerializerUtf8(JsonConfiguration configuration)
+            => (_EmptyArrayJsonSerializer ??= new JsonSerializer[0]);
 
-        public virtual JsonSerializer[] CreateUtf16(JsonConfiguration configuration) { return new JsonSerializer[0]; }
+        public virtual JsonSerializer[] CreateJsonSerializerUtf16(JsonConfiguration configuration)
+            => (_EmptyArrayJsonSerializer ??= new JsonSerializer[0]);
+
+        public virtual JsonSerializerDynamicFactory[] CreateDynamicFactoryUtf8(JsonConfiguration configuration)
+            => (_EmptyArrayJsonSerializerDynamicFactory ??= new JsonSerializerDynamicFactory[0]);
+
+        public virtual JsonSerializerDynamicFactory[] CreateDynamicFactoryUtf16(JsonConfiguration configuration)
+            => (_EmptyArrayJsonSerializerDynamicFactory ??= new JsonSerializerDynamicFactory[0]);
+    }
+
+    public class JsonSerializerDynamicFactory {
+        private static JsonSerializer[]? _EmptyArrayJsonSerializer;
+        public JsonSerializerDynamicFactory() {
+
+        }
+
+        public virtual JsonSerializer? CreateJsonSerializerUtf8(Type type, JsonConfiguration configuration) => default;
+
+        public virtual JsonSerializer? CreateJsonSerializerUtf16(Type type, JsonConfiguration configuration) => default;
+
     }
 
     public class JsonSerializer {
         public JsonSerializer() {
         }
+
+        public virtual Type GetElementType() => null!;
     }
 
     public struct DeserializeResult<T> {
@@ -58,6 +82,8 @@ namespace Brimborium.Json {
         public JsonSerializer() {
         }
 
+        public override Type GetElementType() => typeof(T);
+
         public virtual void Serialize(T value, JsonSink jsonSink) {
         }
 
@@ -65,7 +91,7 @@ namespace Brimborium.Json {
             throw new NotImplementedException();
         }
 
-        public virtual ValueTask<T> DeserializeAsync(JsonSource jsonSource, ref JsonSerializerInfo<T> jsonSerializerInfo) {
+        public virtual ValueTask<T> DeserializeAsync(JsonSource jsonSource, JsonSerializerInfo<T> jsonSerializerInfo) {
             throw new NotImplementedException();
         }
     }

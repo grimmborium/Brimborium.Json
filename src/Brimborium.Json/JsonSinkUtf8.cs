@@ -4,7 +4,7 @@ namespace Brimborium.Json {
     public class JsonSinkUtf8 : JsonSink {
         public const int DefaultInitialLength = 64 * 1024;
         protected internal BoundedByteArray Buffer;
-
+        
         protected JsonSinkUtf8(JsonConfiguration configuration)
             : base(configuration.GetForUtf8()) {
             this.Buffer = BoundedByteArray.Rent(64 * 1024);

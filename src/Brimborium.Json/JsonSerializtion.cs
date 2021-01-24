@@ -72,25 +72,35 @@ namespace Brimborium.Json {
             T value,
             [AllowNull] JsonConfiguration configuration = default
             ) {
-            configuration ??= JsonSerializtion.GetDefaultConfiguration();
-            using (var sink = new JsonSinkUtf8Array(configuration)) {
-                var writer = new JsonWriter(sink);
-                writer.Serialize<T>(value);
-                writer.Flush();
+            using (var sink = new JsonSinkUtf8Array(configuration ?? JsonSerializtion.GetDefaultConfiguration())) {
+                var jsonSerializerInfo = sink.Configuration.PreCalcJsonSerializerInfo<T>();
+                if (sink.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
+                    sink.Configuration.Serialize<T>(value, sink, jsonSerializerInfo);
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
+                }
                 return sink.DisposeAndGetBuffer();
             }
         }
 
-        public static void SerializeToAsyncStreamUtf8<T>(
+        public static async Task SerializeToStreamUtf8Async<T>(
             T value,
             Stream stream,
             [AllowNull] JsonConfiguration configuration = default
             ) {
-            configuration ??= JsonSerializtion.GetDefaultConfiguration();
-            throw new NotImplementedException();
+            using (var sink = new JsonSinkUtf8AsyncStream(stream, configuration ?? JsonSerializtion.GetDefaultConfiguration())) {
+                var jsonSerializerInfo = sink.Configuration.PreCalcJsonSerializerInfo<T>();
+                if (sink.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
+                    sink.Configuration.Serialize<T>(value, sink, jsonSerializerInfo);
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
+                }
+                await sink.FlushAsync();
+            }
         }
 
-        public static void SerializeToSyncStreamUtf8<T>(
+
+        public static void SerializeToStreamUtf8<T>(
             T value,
             Stream stream,
             [AllowNull] JsonConfiguration configuration = default
@@ -121,25 +131,38 @@ namespace Brimborium.Json {
                 Stream stream,
                 [AllowNull] JsonConfiguration configuration = default
             ) {
-            configuration ??= JsonSerializtion.GetDefaultConfiguration();
-            using (var source = new JsonSourceUtf8AsyncStream(stream, configuration)) {
-                var reader = new JsonReader(source);
-                await source.ReadParseAsync();
-                return await reader.DeserializeAsync<T>();
+
+            using (var source = new JsonSourceUtf8AsyncStream(stream, configuration ?? JsonSerializtion.GetDefaultConfiguration())) {
+                var jsonSerializerInfo = source.Configuration.PreCalcJsonSerializerInfo<T>();
+
+                if (source.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
+                    var result = await source.Configuration.DeserializeAsync<T>(source, jsonSerializerInfo);
+                    return result;
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
+                }
             }
         }
+
 
         public static T DeserializeToStreamUtf8<T>(
                 Stream stream,
                 [AllowNull] JsonConfiguration configuration = default
             ) {
-            configuration ??= JsonSerializtion.GetDefaultConfiguration();
-            using (var source = new JsonSourceUtf8AsyncStream(stream, configuration)) {
-                var reader = new JsonReader(source);
-                return reader.Deserialize<T>();
+
+            using (var source = new JsonSourceUtf8SyncStream(stream, configuration ?? JsonSerializtion.GetDefaultConfiguration())) {
+                var jsonSerializerInfo = source.Configuration.PreCalcJsonSerializerInfo<T>();
+
+                if (source.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
+                    // for sync stream - .GetAwaiter().GetResult(); should not be a problem as all ValueTask are completed
+                    var result = source.Configuration.DeserializeAsync<T>(source, jsonSerializerInfo)
+                        .GetAwaiter().GetResult();
+                    return result;
+                } else {
+                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
+                }
             }
         }
-
     }
 }
 

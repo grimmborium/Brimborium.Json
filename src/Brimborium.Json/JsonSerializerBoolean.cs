@@ -8,10 +8,10 @@ namespace Brimborium.Json {
         private static JsonSerializerBoolean? jsonSerializerBoolean;
         public JsonSerializerBooleanFactory() {
         }
-        public override JsonSerializer[] CreateUtf8(JsonConfiguration configuration) {
+        public override JsonSerializer[] CreateJsonSerializerUtf8(JsonConfiguration configuration) {
             return new JsonSerializer[] { jsonSerializerBoolean ??= new JsonSerializerBoolean() };
         }
-        public override JsonSerializer[] CreateUtf16(JsonConfiguration configuration) {
+        public override JsonSerializer[] CreateJsonSerializerUtf16(JsonConfiguration configuration) {
             return new JsonSerializer[] { jsonSerializerBoolean ??= new JsonSerializerBoolean() };
         }
     }
@@ -28,15 +28,30 @@ namespace Brimborium.Json {
         }
 
         public override async ValueTask<bool> DeserializeAsync(JsonSource jsonSource) {
-            JsonToken token;
-            if (!jsonSource.TryReadToken(out token)) { token = await jsonSource.ReadCurrentTokenAsync(); }
-            if (token.Kind == JsonTokenKind.True) { return true; }
-            if (token.Kind == JsonTokenKind.False) { return false; }
-            throw new System.Exception($"Unexpected Token {token.Kind}");
+            //JsonToken token;
+            //if (!jsonSource.TryReadToken(out token)) { token = await jsonSource.ReadCurrentTokenAsync(); }
+            //if (token.Kind == JsonTokenKind.True) { return true; }
+            //if (token.Kind == JsonTokenKind.False) { return false; }
+            //throw new System.Exception($"Unexpected Token {token.Kind}");
+
+            if (jsonSource.IsFeedNeeded()) { await jsonSource.FeedAsync(); }
+            switch (jsonSource.CurrentToken.Kind) {
+                case JsonTokenKind.True: jsonSource.MoveNext(); return true;
+                case JsonTokenKind.False: jsonSource.MoveNext(); return false;
+                default:
+                    throw new System.Exception($"Unexpected Token {jsonSource.CurrentToken}");
+            }
+
         }
 
-        public override ValueTask<bool> DeserializeAsync(JsonSource jsonSource, ref JsonSerializerInfo<bool> jsonSerializerInfo) {
-            return this.DeserializeAsync(jsonSource);
+        public override async ValueTask<bool> DeserializeAsync(JsonSource jsonSource, JsonSerializerInfo<bool> jsonSerializerInfo) {
+            if (jsonSource.IsFeedNeeded()) { await jsonSource.FeedAsync(); }
+            switch(jsonSource.CurrentToken.Kind){
+                case JsonTokenKind.True: jsonSource.MoveNext(); return true;
+                case JsonTokenKind.False: jsonSource.MoveNext(); return false;
+                default:
+                    throw new System.Exception($"Unexpected Token {jsonSource.CurrentToken}");
+            }
         }
     }
 }
