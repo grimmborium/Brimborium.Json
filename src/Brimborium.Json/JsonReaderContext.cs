@@ -37,19 +37,23 @@ namespace Brimborium.Json {
 
         public JsonToken CurrentToken
             => TokenEOF;
-        public bool ReadToken(int v) {
+
+        public JsonToken GetToken(int offset)
+            => TokenEOF;
+
+
+
+        public bool EnsureTokens(int count=1) {
             return true;
         }
 
-        public bool EnsureTokens(int nbr=1) {
-            return true;
-        }
-
-        public async ValueTask EnsureTokensAsync(int nbr = 1) {
+        public async ValueTask EnsureTokensAsync(int count = 1) {
             await Task.CompletedTask;
         }
 
-
+        public bool MoveNext(int count=1) {
+            return true;
+        }
 
         /*
         public bool HasToken() => (ReadIndexToken < FeedIndexToken);

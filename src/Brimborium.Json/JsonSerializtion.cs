@@ -134,13 +134,14 @@ namespace Brimborium.Json {
 
             using (var source = new JsonSourceUtf8AsyncStream(stream, configuration ?? JsonSerializtion.GetDefaultConfiguration())) {
                 var jsonSerializerInfo = source.Configuration.PreCalcJsonSerializerInfo<T>();
-
-                if (source.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
-                    var result = await source.Configuration.DeserializeAsync<T>(source, jsonSerializerInfo);
-                    return result;
-                } else {
-                    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
-                }
+                var result = await source.Configuration.DeserializeAsync<T>(null, source, jsonSerializerInfo);
+                return result;
+                //if (source.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
+                //    var result = await source.Configuration.DeserializeAsync<T>(null, source, jsonSerializerInfo);
+                //    return result;
+                //} else {
+                //    throw new FormatterNotRegisteredException(typeof(T).FullName ?? typeof(T).Name);
+                //}
             }
         }
 
@@ -155,7 +156,7 @@ namespace Brimborium.Json {
 
                 if (source.Configuration.TryGetSerializerInfo<T>(null, jsonSerializerInfo)) {
                     // for sync stream - .GetAwaiter().GetResult(); should not be a problem as all ValueTask are completed
-                    var result = source.Configuration.DeserializeAsync<T>(source, jsonSerializerInfo)
+                    var result = source.Configuration.DeserializeAsync<T>(null, source, jsonSerializerInfo)
                         .GetAwaiter().GetResult();
                     return result;
                 } else {

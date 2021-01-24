@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Brimborium.Json {
@@ -29,26 +30,30 @@ namespace Brimborium.Json {
         //    throw new NotImplementedException();
         //}
 
-        public virtual bool IsFeedNeeded(int count = 1)
-            => throw new NotImplementedException();
+        public bool EnsureTokens(int count = 1)
+            => this.Context.EnsureTokens(count);
 
-        public virtual ValueTask FeedAsync() {
-            throw new NotImplementedException();
-        }
+        public ValueTask EnsureTokensAsync(int count = 1)
+            => this.Context.EnsureTokensAsync(count);
 
         public JsonToken CurrentToken
             => this.Context.CurrentToken;
         public JsonToken Token1
-            => this.Context.CurrentToken;
+            => this.Context.GetToken(1);
         public JsonToken Token2
-            => this.Context.CurrentToken;
+            => this.Context.GetToken(2);
         public JsonToken Token3
-            => this.Context.CurrentToken;
+            => this.Context.GetToken(3);
 
 
-        public void MoveNext() {
-            throw new NotImplementedException();
+        public bool MoveNext(int count = 1) {
+            return this.Context.MoveNext(count);
         }
+
+        public virtual async ValueTask ReadFromSourceAsync() {
+            await Task.CompletedTask;
+        }
+        
 
         protected bool IsDisposed => this._IsDisposed != 0;
 
@@ -136,7 +141,7 @@ namespace Brimborium.Json {
             this._Stream = stream;
         }
 
-        public override async ValueTask FeedAsync() {
+        public override async ValueTask ReadFromSourceAsync() {
             this.Context.BoundedByteArray.AdjustBeforeFeeding(4096, DefaultInitialLength);
             var read = await this._Stream.ReadAsync(
                 this.Context.BoundedByteArray.Buffer,

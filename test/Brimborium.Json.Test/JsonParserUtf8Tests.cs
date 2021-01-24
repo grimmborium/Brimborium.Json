@@ -43,14 +43,15 @@ namespace Brimborium.Json {
             await InvokeParse(json, async (context) => {
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
+                context.MoveNext();
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayEnd, context.ReadCurrentToken().Kind);
+                Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
             });
             await InvokeParse(json, async (context) => {
                 if (context.EnsureTokens(2)) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayStart, context.GetToken(0).Kind);
                 Assert.Equal(JsonTokenKind.ArrayEnd, context.GetToken(1).Kind);
-                context.ReadToken(2);
+                context.MoveNext(2);
             });
         }
 
@@ -108,6 +109,31 @@ namespace Brimborium.Json {
         //                    return false;
         //                }));
         //        }
+
+        public async Task JsonParserUtf8_011_BooleanManyArray() {
+            //string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            string json = "[true,true,true,]";
+            await InvokeParse(json, async (context) => {
+                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
+                context.MoveNext();
+
+
+                while (true) {
+                    if (context.EnsureTokens(2)) { await context.EnsureTokensAsync(); }
+                    if (context.GetToken(0).Kind == JsonTokenKind.ArrayEnd) { break; }
+                    Assert.Equal(JsonTokenKind.True, context.GetToken(0).Kind);
+                    Assert.Equal(JsonTokenKind.ValueSep, context.GetToken(1).Kind);
+                    context.MoveNext(2);
+                }
+
+                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
+                context.MoveNext();
+
+                Assert.Equal(JsonTokenKind.EOF, context.CurrentToken.Kind);
+            });
+        }
 
         //        [Fact]
         //        public void JsonParserUtf8_011_BooleanManyArray() {

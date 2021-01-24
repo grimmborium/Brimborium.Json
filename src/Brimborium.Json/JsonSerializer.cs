@@ -87,13 +87,13 @@ namespace Brimborium.Json {
         public virtual void Serialize(T value, JsonSink jsonSink) {
         }
 
-        public virtual ValueTask<T> DeserializeAsync(JsonSource jsonSource) {
+        public virtual ValueTask<T> DeserializeAsync(Type? currentType, JsonSource jsonSource) {
             throw new NotImplementedException();
         }
 
-        public virtual ValueTask<T> DeserializeAsync(JsonSource jsonSource, JsonSerializerInfo<T> jsonSerializerInfo) {
-            throw new NotImplementedException();
-        }
+        //public virtual ValueTask<T> DeserializeAsync(JsonSource jsonSource, JsonSerializerInfo<T> jsonSerializerInfo) {
+        //    throw new NotImplementedException();
+        //}
     }
 
     public class JsonSerializerUtf8<T> : JsonSerializer<T> {

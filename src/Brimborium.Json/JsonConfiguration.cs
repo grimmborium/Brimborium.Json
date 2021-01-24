@@ -1,6 +1,9 @@
-﻿using System;
+﻿#pragma warning disable IDE0041 // Use 'is null' check
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace Brimborium.Json {
@@ -111,8 +114,11 @@ namespace Brimborium.Json {
 
         public JsonSerializerInfo<T> PreCalcJsonSerializerInfo<T>() {
             var result = new JsonSerializerInfo<T>(null);
-            // may be an alternative
-            TryGetSerializerInfo<T>(null, result);
+            if (this.Type2JsonSerializer.TryGetValue(typeof(T), out var staticJsonSerializer)) {
+                if (staticJsonSerializer is JsonSerializer<T> staticJsonSerializerT) {
+                    result.StaticJsonSerializer = staticJsonSerializerT;
+                }
+            }
             return result;
         }
 
@@ -120,22 +126,56 @@ namespace Brimborium.Json {
             Type? currentType,
             JsonSerializerInfo<T> jsonSerializerInfo
             ) {
-            throw new NotImplementedException();
-            //return false;
+            if (currentType is null) {
+                if (jsonSerializerInfo.StaticJsonSerializer is null) {
+                    if (this.Type2JsonSerializer.TryGetValue(jsonSerializerInfo.StaticType ?? typeof(T), out var jsonSerializer)) {
+                        if (jsonSerializer is JsonSerializer<T> staticJsonSerializer) {
+                            jsonSerializerInfo.StaticJsonSerializer = staticJsonSerializer;
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            } else {
+                if ((jsonSerializerInfo.DynamicType is object)
+                    && jsonSerializerInfo.DynamicType.Equals(currentType)) {
+                    return true;
+                }
+                if ((jsonSerializerInfo.DynamicType is null)
+                    || !jsonSerializerInfo.DynamicJsonSerializer.Equals(currentType)) {
+                    jsonSerializerInfo.DynamicType = currentType;
+                    if (this.Type2JsonSerializer.TryGetValue(currentType, out var jsonSerializer)) {
+                        if (jsonSerializer is JsonSerializer<T> dynamicJsonSerializer) {
+                            jsonSerializerInfo.DynamicJsonSerializer = dynamicJsonSerializer;
+                            return true;
+                        } else {
+                            jsonSerializerInfo.DynamicJsonSerializer = null;
+                            return false;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         public bool TryGetSerializer<T>(
             Type currentType,
-            [MaybeNullWhen(false)] out JsonSerializer jsonSerializer
+            JsonSerializerInfo<T>? jsonSerializerInfo,
+            [MaybeNullWhen(false)] out JsonSerializer<T> jsonSerializer
             ) {
-            var result = new JsonSerializerInfo<T>(currentType);
-            if (TryGetSerializerInfo(currentType, result)) {
-                if (result.DynamicJsonSerializer is object) {
-                    jsonSerializer = result.DynamicJsonSerializer;
+            if (jsonSerializerInfo is null) {
+                jsonSerializerInfo = PreCalcJsonSerializerInfo<T>();
+            }
+            if (TryGetSerializerInfo(currentType, jsonSerializerInfo)) {
+                if (jsonSerializerInfo.DynamicJsonSerializer is JsonSerializer<T>) {
+                    jsonSerializer = jsonSerializerInfo.DynamicJsonSerializer;
                     return true;
                 }
-                if (result.StaticJsonSerializer is object) {
-                    jsonSerializer = result.StaticJsonSerializer;
+                if (jsonSerializerInfo.StaticJsonSerializer is JsonSerializer<T>) {
+                    jsonSerializer = jsonSerializerInfo.StaticJsonSerializer;
                     return true;
                 }
             }
@@ -146,18 +186,32 @@ namespace Brimborium.Json {
         }
 
         public void Serialize<T>(T value, JsonSink jsonSink, JsonSerializerInfo<T> jsonSerializerInfo) {
-            //jsonSink.Context
-            throw new NotImplementedException();
+            if (typeof(T).IsValueType) {
+                // not null
+            } else if (ReferenceEquals(value, null)) {
+                jsonSink.Write(JsonConstText.Null);
+                return;
+            }
+            if (this.TryGetSerializer<T>(value.GetType(), null, out var jsonSerializer)) {
+                jsonSerializer.Serialize(value, jsonSink);
+            } else {
+                throw new FormatterNotRegisteredException($"Seríalizer for {typeof(T).FullName ?? typeof(T).Name} not found.");
+            }
         }
 
-        public async ValueTask<T> DeserializeAsync<T>(JsonSource jsonSource, JsonSerializerInfo<T> jsonSerializerInfo) {
-            if (jsonSerializerInfo.DynamicJsonSerializer is JsonSerializer<T> dynamicJsonSerializer) {
-                return await dynamicJsonSerializer.DeserializeAsync(jsonSource, jsonSerializerInfo);
+        public async ValueTask<T> DeserializeAsync<T>(Type? currentType, JsonSource jsonSource, JsonSerializerInfo<T> jsonSerializerInfo) {
+            if (this.TryGetSerializer<T>(currentType, jsonSerializerInfo, out var jsonSerializer)) {
+                return await jsonSerializer.DeserializeAsync(currentType, jsonSource);
+            } else {
+                throw new FormatterNotRegisteredException($"Seríalizer for {typeof(T).FullName ?? typeof(T).Name} not found.");
             }
-            if (jsonSerializerInfo.StaticJsonSerializer is JsonSerializer<T> staticJsonSerializer) {
-                return await staticJsonSerializer.DeserializeAsync(jsonSource, jsonSerializerInfo);
-            }
-            throw new NotImplementedException();
+            //  if (jsonSerializerInfo.DynamicJsonSerializer is JsonSerializer<T> dynamicJsonSerializer) {
+            //      return await dynamicJsonSerializer.DeserializeAsync(jsonSource, jsonSerializerInfo);
+            //  }
+            //  if (jsonSerializerInfo.StaticJsonSerializer is JsonSerializer<T> staticJsonSerializer) {
+            //      return await staticJsonSerializer.DeserializeAsync(jsonSource, jsonSerializerInfo);
+            //  }
+            //  throw new FormatterNotRegisteredException($"Seríalizer for {typeof(T).FullName ?? typeof(T).Name} not found.");
         }
     }
 }
