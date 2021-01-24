@@ -1,4 +1,5 @@
 ﻿#pragma warning disable IDE0041 // Use 'is null' check
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,12 +37,11 @@ namespace Brimborium.Json {
 
         public JsonToken CurrentToken
             => TokenEOF;
-
-        public bool ReadToken() {
+        public bool ReadToken(int v) {
             return true;
         }
 
-        public bool EnsureTokens(int nbr) {
+        public bool EnsureTokens(int nbr=1) {
             return true;
         }
 
@@ -51,7 +51,7 @@ namespace Brimborium.Json {
 
 
 
-
+        /*
         public bool HasToken() => (ReadIndexToken < FeedIndexToken);
 
         public JsonToken GetCurrentToken()
@@ -81,6 +81,11 @@ namespace Brimborium.Json {
                 return false;
             }
         }
+
+        public object GetToken(int v) {
+            throw new NotImplementedException();
+        }
+
         public bool TryReadToken(out JsonToken jsonToken) {
             if (ReadIndexToken < FeedIndexToken) {
                 jsonToken = Tokens[ReadIndexToken++];
@@ -94,7 +99,7 @@ namespace Brimborium.Json {
                 return false;
             }
         }
-
+        */
         //  public JsonReaderContextStateUtf8 SaveStateUtf8;
     }
 

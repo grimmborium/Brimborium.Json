@@ -21,6 +21,7 @@ namespace Brimborium.Json {
 
         public JsonConfiguration() {
             this._Mode = JsonConfigurationMode.Common;
+            this._Parent = null;
             this.JsonSerializerFactory = new List<JsonSerializerFactory>();
             this.Type2JsonSerializer = new Dictionary<Type, JsonSerializer>();
             this.JsonSerializerDynamicFactory = new List<JsonSerializerDynamicFactory>();
@@ -29,6 +30,9 @@ namespace Brimborium.Json {
         private JsonConfiguration(JsonConfigurationMode mode, JsonConfiguration parent) {
             this._Mode = mode;
             this._Parent = parent;
+            this.JsonSerializerFactory = new List<JsonSerializerFactory>();
+            this.Type2JsonSerializer = new Dictionary<Type, JsonSerializer>();
+            this.JsonSerializerDynamicFactory = new List<JsonSerializerDynamicFactory>();
         }
 
         public JsonConfiguration GetForUtf8() {
