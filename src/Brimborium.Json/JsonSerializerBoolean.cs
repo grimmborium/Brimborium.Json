@@ -37,8 +37,8 @@ namespace Brimborium.Json {
 
             if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
             switch (jsonSource.CurrentToken.Kind) {
-                case JsonTokenKind.True: jsonSource.MoveNext(); return true;
-                case JsonTokenKind.False: jsonSource.MoveNext(); return false;
+                case JsonTokenKind.True: jsonSource.Advance(); return true;
+                case JsonTokenKind.False: jsonSource.Advance(); return false;
                 default:
                     throw new System.Exception($"Unexpected Token {jsonSource.CurrentToken}");
             }

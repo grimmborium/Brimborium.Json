@@ -43,7 +43,7 @@ namespace Brimborium.Json {
             await InvokeParse(json, async (context) => {
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
-                context.MoveNext();
+                context.Advance();
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
             });
@@ -51,7 +51,7 @@ namespace Brimborium.Json {
                 if (context.EnsureTokens(2)) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayStart, context.GetToken(0).Kind);
                 Assert.Equal(JsonTokenKind.ArrayEnd, context.GetToken(1).Kind);
-                context.MoveNext(2);
+                context.Advance(2);
             });
         }
 
@@ -116,7 +116,7 @@ namespace Brimborium.Json {
             await InvokeParse(json, async (context) => {
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
-                context.MoveNext();
+                context.Advance();
 
 
                 while (true) {
@@ -124,12 +124,12 @@ namespace Brimborium.Json {
                     if (context.GetToken(0).Kind == JsonTokenKind.ArrayEnd) { break; }
                     Assert.Equal(JsonTokenKind.True, context.GetToken(0).Kind);
                     Assert.Equal(JsonTokenKind.ValueSep, context.GetToken(1).Kind);
-                    context.MoveNext(2);
+                    context.Advance(2);
                 }
 
                 if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
                 Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
-                context.MoveNext();
+                context.Advance();
 
                 Assert.Equal(JsonTokenKind.EOF, context.CurrentToken.Kind);
             });
@@ -185,7 +185,7 @@ namespace Brimborium.Json {
         //    Assert.Equal(context.CountToken);
         //}
 
-        private static async Task InvokeParse(string json, Func<JsonReaderContext, Task> action) {
+        private static async Task InvokeParse(string json, Action<JsonReaderContext> action) {
             JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
             var parser = new JsonParserUtf8(context);
             JsonText jsonText = new JsonText(json, false);
@@ -193,7 +193,7 @@ namespace Brimborium.Json {
             BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
             context = new JsonReaderContext();
             parser.Parse(src, true);
-            await action(context);
+            action(context);
             JsonReaderContextPool.Instance.Return(context);
         }
     }

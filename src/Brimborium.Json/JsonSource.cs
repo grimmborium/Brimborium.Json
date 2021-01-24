@@ -16,25 +16,23 @@ namespace Brimborium.Json {
             this.Context = JsonReaderContextPool.Instance.Rent();
         }
 
-        //public bool HasToken() => this.Context.HasToken();
+        public virtual bool EnsureTokens(int count = 1) {
+            if ((this.Context.ReadIndexToken + count) < this.Context.FeedIndexToken) {
+                return true;
+            }
+#warning TODO add missing logic
+            return false;
+        }
 
-        //public JsonToken GetCurrentToken() => this.Context.GetCurrentToken();
-
-        //public JsonToken ReadCurrentToken() => this.Context.ReadCurrentToken();
-
-        //public bool TryPeekToken(out JsonToken jsonToken) => this.Context.TryPeekToken(out jsonToken);
-
-        //public bool TryReadToken(out JsonToken jsonToken) => this.Context.TryReadToken(out jsonToken);
-
-        //public ValueTask<JsonToken> ReadCurrentTokenAsync() {
-        //    throw new NotImplementedException();
-        //}
-
-        public bool EnsureTokens(int count = 1)
-            => this.Context.EnsureTokens(count);
-
-        public ValueTask EnsureTokensAsync(int count = 1)
-            => this.Context.EnsureTokensAsync(count);
+        public virtual async ValueTask EnsureTokensAsync(int count = 1) {
+            while (true) {
+                if ((this.Context.ReadIndexToken + count) < this.Context.FeedIndexToken) {
+                    return;
+                }
+                await this.ReadFromSourceAsync();
+#warning TODO add missing logic
+            }
+        }
 
         public JsonToken CurrentToken
             => this.Context.CurrentToken;
@@ -46,14 +44,13 @@ namespace Brimborium.Json {
             => this.Context.GetToken(3);
 
 
-        public bool MoveNext(int count = 1) {
-            return this.Context.MoveNext(count);
+        public virtual bool Advance(int count = 1) {
+            return this.Context.Advance(count);
         }
 
         public virtual async ValueTask ReadFromSourceAsync() {
             await Task.CompletedTask;
         }
-        
 
         protected bool IsDisposed => this._IsDisposed != 0;
 
@@ -74,7 +71,6 @@ namespace Brimborium.Json {
             this.Configuration = null!;
             this.Context = null!;
         }
-
 
         //~JsonSink() {
         //    Dispose(disposing: false);
@@ -97,11 +93,6 @@ namespace Brimborium.Json {
             base.Disposing(disposing);
             JsonReaderContextPool.Instance.Return(this.Context);
         }
-
-        //    public Span<byte> Rent(int capa) {
-        //        return new Span<byte>(new byte[capa]);
-        //    }
-        //    public void Written(int count) { }
     }
 
     public class JsonSourceUtf16 : JsonSource {
@@ -116,11 +107,6 @@ namespace Brimborium.Json {
         public JsonSourceAsyncUtf8(JsonConfiguration configuration)
             : base(configuration.GetForUtf8()) {
         }
-
-        public Span<byte> Rent(int capa) {
-            return new Span<byte>(new byte[capa]);
-        }
-        public void Written(int count) { }
     }
 
     public class JsonSourceUtf8AsyncStream : JsonSourceUtf8 {
@@ -148,6 +134,7 @@ namespace Brimborium.Json {
                 this.Context.BoundedByteArray.FeedOffset,
                 this.Context.BoundedByteArray.FeedLength);
             this.Context.BoundedByteArray.AdjustAfterFeeding(read);
+            this.Context.FinalContent = (read == 0);
             this.Parser.Parse(this.Context.BoundedByteArray, read == 0);
         }
     }
