@@ -85,7 +85,7 @@ namespace Brimborium.Json {
             var sourceSpan = BoundedByteArray.GetSpan(protectRange.lowerOffset, protectRange.lowerLength);
             int length = protectRange.lowerLength; // == sourceSpan.Length;
             
-            int FeedIndexTokenLimit = this.JsonSource.Tokens.Length;
+            int FeedIndexTokenLimit = Tokens.Length;
             byte current;
             //
             int OffsetTokenStart = this.GlobalOffsetTokenStart - protectRange.lowerGlobalOffset; 

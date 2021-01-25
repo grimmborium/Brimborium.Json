@@ -103,10 +103,23 @@ namespace Brimborium.Json {
         //                }));
         //        }
 
+
+        [Fact]
+        public async Task JsonParserUtf8_011_BooleanManyArray2() {
+            string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true]";
+            for (int loop = 0; loop < 10000; loop++) {
+                JsonText jsonText = new JsonText(json, false);
+                var utf8 = jsonText.GetUtf8();
+                MemoryStream ms = new MemoryStream(utf8);
+                //var reader = new System.Text.Json.Utf8JsonReader();
+                await System.Text.Json.JsonSerializer.DeserializeAsync(ms, typeof(bool[]));
+            }
+
+        }
         [Fact]
         public async Task JsonParserUtf8_011_BooleanManyArray() {
             string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
-            for (int loop = 0; loop < 100000; loop++) {
+            for (int loop = 0; loop < 10000; loop++) {
                 //string json = "[true,true,true,]";
                 await InvokeParse(json, async (jsonSource) => {
                     if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }

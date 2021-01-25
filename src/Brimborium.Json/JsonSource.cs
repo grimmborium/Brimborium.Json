@@ -28,6 +28,9 @@ namespace Brimborium.Json {
             this._Context = JsonReaderContextPool.Instance.Rent();
             this.BoundedByteArray = this._Context.BoundedByteArray;
             this.BoundedCharArray = this._Context.BoundedCharArray;
+            this.Tokens = this._Context.Tokens;
+            this.TokenCache = this._Context.TokenCache;
+            this.TokenCacheCount = this._Context.TokenCacheCount;
             this.FinalContent = false;
             this.Stack = new Stack<JsonTokenKind>();
             this.ReadIndexToken = 0;
@@ -169,7 +172,7 @@ namespace Brimborium.Json {
                 return;
             }
             var orgReadIndexToken = ReadIndexToken;
-            while (true) {
+            while (!(this.BoundedByteArray.ReadLength == 0 && this.FinalContent)) {
                 await this.ReadFromSourceAsync();
                 var needMoreContent = this.Parse(count + orgReadIndexToken - FeedIndexToken);
                 if (needMoreContent) {
@@ -207,7 +210,7 @@ namespace Brimborium.Json {
         }
 
         protected virtual void Disposing(bool disposing) {
-            JsonReaderContextPool.Instance.Return(this._Context, this.TokenCacheCount);
+            JsonReaderContextPool.Instance.Return(this._Context.Reset(this.TokenCacheCount, this.BoundedByteArray, this.BoundedCharArray) );
             this.Configuration = null!;
             this._Context = null!;
         }

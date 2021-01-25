@@ -22,11 +22,14 @@ namespace Brimborium.Json {
             this.BoundedCharArray = BoundedCharArray.Empty();
         }
 
-        public void Reset(int tokenCacheCount) {
+        public JsonReaderContext Reset(int tokenCacheCount, BoundedByteArray boundedByteArray, BoundedCharArray boundedCharArray) {
             for (int idx = 0; idx < this.Tokens.Length; idx++) {
                 this.Tokens[idx] = JsonToken.TokenFault;
             }
             this.TokenCacheCount = tokenCacheCount;
+            this.BoundedByteArray = boundedByteArray;
+            this.BoundedCharArray = boundedCharArray;
+            return this;
         }
     }
 
@@ -53,7 +56,7 @@ namespace Brimborium.Json {
             return new JsonReaderContext();
         }
 
-        public void Return(JsonReaderContext context, int tokenCacheCount) {
+        public void Return(JsonReaderContext context) {
             if (context is null) {
                 // nothing to do
             } else {
@@ -61,12 +64,10 @@ namespace Brimborium.Json {
                 int slot = Thread.CurrentThread.ManagedThreadId;
                 for (int idx = 0; idx < this._Contexts.Length; idx++) {
                     if (this._Contexts[(idx + slot) % 8] is null) {
-                        context.Reset(tokenCacheCount);
                         if (ReferenceEquals(
                             System.Threading.Interlocked.CompareExchange(ref this._Contexts[(idx + slot) % 8], null, context),
                             null)) {
                         }
-                        return;
                     }
                 }
             }
