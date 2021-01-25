@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Brimborium.Json {
     public struct JsonParserUtf8 {
@@ -26,58 +27,82 @@ namespace Brimborium.Json {
             EOF // must be the last
         }
 
-        public const int InitialCharBufferSize = 64 * 1024;
+        
+        public JsonSourceUtf8 JsonSource;
+        public int InitialCharBufferSize;
+        //
         public int LineNo;
-        public int LineOffset;
+        public int LineGlobalOffset;
+        public int GlobalOffset;
+        public int GlobalOffsetTokenStart;
         public int NumberSign;
         public ulong uNumber;
         public long sNumber;
-        public int IdxToken;
-        public int Offset;
         public ParserState State;
-        public int OffsetTokenStart;
-        public bool FinalContent;
-        public JsonReaderContext Context;
+        public int NeedMoreContent;
+        public bool Faulted;
+        public bool FinalContent => this.JsonSource.FinalContent;
 
-        public JsonParserUtf8(JsonReaderContext jsonReaderContext) {
-            Context = jsonReaderContext;
+        public JsonParserUtf8(JsonSourceUtf8 jsonSource, int initialCharBufferSize) {
+            JsonSource = jsonSource;
+            InitialCharBufferSize = (initialCharBufferSize > (4 * 1024)) ? initialCharBufferSize : (64 * 1024);
             //
             LineNo = 1;
-            LineOffset = 0;
+            LineGlobalOffset = 0;
+            GlobalOffset = 0;
+            GlobalOffsetTokenStart = 0;
             NumberSign = 0;
             uNumber = 0;
             sNumber = 0;
-            IdxToken = 0;
-            Offset = -1;
             State = 0;
-            OffsetTokenStart = 0;
-            FinalContent = false;
+            NeedMoreContent = 0;
+            Faulted = false;
         }
 
-        public void Parse(BoundedByteArray src, bool finalContent) {
-            Context.BoundedByteArray = src;
-            Context.FinalContent = finalContent;
-            Parse();
-        }
+        public JsonToken RentFromTokenCache()
+            => this.JsonSource.RentFromTokenCache();
+        public void ReturnToTokenCache(JsonToken jsonToken)
+            => this.JsonSource.ReturnToTokenCache(jsonToken);
 
-        public void Parse() {
-            var usedSpan = Context.BoundedByteArray.GetReadSpan();
-            int length = usedSpan.Length;
-            bool finalContent = Context.FinalContent;
-            int tokensLength = Context.Tokens.Length;
-            byte current;
-            if (Context.ReadIndexToken == Context.FeedIndexToken) {
-                Context.ReadIndexToken = 0;
-                Context.FeedIndexToken = 0;
+        public void Parse(int countWanted=1) {
+            if (this.Faulted) { return; }
+            ref var BoundedByteArray = ref this.JsonSource.BoundedByteArray;
+            if (this.NeedMoreContent > 0) {
+                if (BoundedByteArray.GlobalReadOffset == this.NeedMoreContent) {
+                    return;
+                }
             }
-            if (Context.FeedIndexToken < Context.Tokens.Length) {
+            if (countWanted < 1) { countWanted = 1; }
+
+            ref var ReadIndexToken = ref this.JsonSource.ReadIndexToken;
+            ref var FeedIndexToken = ref this.JsonSource.FeedIndexToken;
+            ref var Tokens = ref this.JsonSource.Tokens;
+            ref var BoundedCharArray = ref this.JsonSource.BoundedCharArray;
+
+
+            var protectRange = BoundedByteArray.GetProtectRange();
+            
+            var sourceSpan = BoundedByteArray.GetSpan(protectRange.lowerOffset, protectRange.lowerLength);
+            int length = protectRange.lowerLength; // == sourceSpan.Length;
+            
+            int FeedIndexTokenLimit = this.JsonSource.Tokens.Length;
+            byte current;
+            //
+            int OffsetTokenStart = this.GlobalOffsetTokenStart - protectRange.lowerGlobalOffset; 
+            int Offset = this.GlobalOffset - protectRange.lowerGlobalOffset;
+            //
+            if (ReadIndexToken == FeedIndexToken) {
+                ReadIndexToken = 0;
+                FeedIndexToken = 0;
+            }
+            if (FeedIndexToken < Tokens.Length) {
                 //
                 // now goto hell
                 //
-                while (++Offset < length) {
+                while (Offset < length) {
                     switch (State) {
                         case ParserState.Start: {
-                                switch (current = usedSpan[Offset]) {
+                                switch (current = sourceSpan[Offset]) {
                                     case 1:
                                     case 2:
                                     case 3:
@@ -110,9 +135,8 @@ namespace Brimborium.Json {
                                     case 30:
                                     case 31:
                                     case 32: /* SPACE */
-                                        --Offset;
-                                        while (++Offset < length) {
-                                            switch (usedSpan[Offset]) {
+                                        while (Offset < length) {
+                                            switch (sourceSpan[Offset]) {
                                                 case 1:
                                                 case 2:
                                                 case 3:
@@ -122,22 +146,25 @@ namespace Brimborium.Json {
                                                 case 7:
                                                 case 8:
                                                 case 9: /* \t */
+                                                    ++Offset;
                                                     continue;
                                                 case 10: /* \n */
+                                                    ++Offset;
                                                     this.LineNo++;
-                                                    this.LineOffset = Offset + 1;
+                                                    this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                                     continue;
                                                 case 11:
                                                 case 12:
+                                                    ++Offset;
                                                     continue;
                                                 case 13: /* \r */
                                                     this.LineNo++;
-                                                    if ((Offset + 1) < length) {
-                                                        if (usedSpan[Offset + 1] == 10 /* \n */) {
+                                                    if ((++Offset) < length) {
+                                                        if (sourceSpan[Offset + 1] == 10 /* \n */) {
                                                             ++Offset;
                                                         }
                                                     }
-                                                    this.LineOffset = Offset + 1;
+                                                    this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                                     continue;
                                                 case 14:
                                                 case 15:
@@ -159,10 +186,10 @@ namespace Brimborium.Json {
                                                 case 31:
                                                 case 32: /* SPACE */
                                                     // ignore
+                                                    ++Offset;
                                                     continue;
 
                                                 default:
-                                                    --Offset;
                                                     goto lblSpaceNext;
                                             }
                                         }
@@ -170,52 +197,64 @@ namespace Brimborium.Json {
                                         OffsetTokenStart = Offset;
                                         continue;
 
-                                    case 33: /* ! */
-                                        OffsetTokenStart = Offset;
-                                        break;
+                                    //case 33: /* ! */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 34: /* " */
                                         State = ParserState.QuoteStart;
                                         OffsetTokenStart = Offset;
-                                        break;
-                                    case 35: /* # */
-                                    case 36: /* $ */
-                                    case 37: /* % */
-                                    case 38: /* & */
-                                    case 39: /* ' */
-                                    case 40: /* ( */
-                                    case 41: /* ) */
-                                    case 42: /* * */
-                                        break;
+                                        ++Offset;
+                                        continue;
+
+                                    //case 35: /* # */
+                                    //case 36: /* $ */
+                                    //case 37: /* % */
+                                    //case 38: /* & */
+                                    //case 39: /* ' */
+                                    //case 40: /* ( */
+                                    //case 41: /* ) */
+                                    //case 42: /* * */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 43: /* + */
                                         State = ParserState.NumberSignPlus;
                                         this.NumberSign = 1;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
 
                                     case 44: /* , */
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenValueSep;
-                                        Context.BoundedCharArray.GlobalProtected = -1;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
-                                        if (finalContent && (length - Offset) < 128) {
-                                            continue;
-                                        } else {
-                                            goto lblDone;
-                                        }
+#warning BoundedCharArray.GlobalProtected = -1;
+                                        BoundedCharArray.GlobalProtected = -1;
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenValueSep;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
+
+                                        // State = ParserState.Start;
+                                        ++Offset;
+                                        OffsetTokenStart = Offset;
+                                        goto lblDone;
 
                                     case 45: /* - */
                                         State = ParserState.NumberSignMinus;
                                         this.NumberSign = -1;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
+
                                     case 46: /* . */
                                         State = ParserState.NumberIEEE;
                                         this.NumberSign = 1;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
+
                                     case 47: /* / */
                                         State = ParserState.Slash;
                                         OffsetTokenStart = Offset;
-                                        break;
+                                        ++Offset;
+                                        continue;
 
                                     case 48: /* 0 */
                                     case 49: /* 1 */
@@ -231,153 +270,186 @@ namespace Brimborium.Json {
                                         this.NumberSign = 1;
                                         OffsetTokenStart = Offset;
                                         this.uNumber = (ulong)(current -/* '0' */48);
+                                        ++Offset;
                                         continue;
 
                                     case 58: /* : */
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenPairSep;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenPairSep;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
+                                        ++Offset;
+                                        // State = ParserState.Start;
+                                        OffsetTokenStart = Offset;
                                         continue;
 
-                                    case 59: /* ; */
-                                    case 60: /* < */
-                                    case 61: /* = */
-                                    case 62: /* > */
-                                    case 63: /* ? */
-                                    case 64: /* @ */
-                                    case 65: /* A */
-                                    case 66: /* B */
-                                    case 67: /* C */
-                                    case 68: /* D */
-                                    case 69: /* E */
-                                        break;
+                                    //case 59: /* ; */
+                                    //case 60: /* < */
+                                    //case 61: /* = */
+                                    //case 62: /* > */
+                                    //case 63: /* ? */
+                                    //case 64: /* @ */
+                                    //case 65: /* A */
+                                    //case 66: /* B */
+                                    //case 67: /* C */
+                                    //case 68: /* D */
+                                    //case 69: /* E */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 70: /* F */
                                         State = ParserState.F;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
-                                    case 71: /* G */
-                                    case 72: /* H */
-                                    case 73: /* I */
-                                    case 74: /* J */
-                                    case 75: /* K */
-                                    case 76: /* L */
-                                    case 77: /* M */
-                                        break;
+
+                                    //case 71: /* G */
+                                    //case 72: /* H */
+                                    //case 73: /* I */
+                                    //case 74: /* J */
+                                    //case 75: /* K */
+                                    //case 76: /* L */
+                                    //case 77: /* M */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 78: /* N */
                                         State = ParserState.N;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
-                                    case 79: /* O */
-                                    case 80: /* P */
-                                    case 81: /* Q */
-                                    case 82: /* R */
-                                    case 83: /* S */
-                                        break;
+
+                                    //case 79: /* O */
+                                    //case 80: /* P */
+                                    //case 81: /* Q */
+                                    //case 82: /* R */
+                                    //case 83: /* S */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 84: /* T */
                                         State = ParserState.T;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
-                                    case 85: /* U */
-                                    case 86: /* V */
-                                    case 87: /* W */
-                                    case 88: /* X */
-                                    case 89: /* Y */
-                                    case 90: /* Z */
-                                        break;
+
+                                    //case 85: /* U */
+                                    //case 86: /* V */
+                                    //case 87: /* W */
+                                    //case 88: /* X */
+                                    //case 89: /* Y */
+                                    //case 90: /* Z */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 91: /* [ */
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenArrayStart;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
-                                        OffsetTokenStart = Offset + 1;
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenArrayStart;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
+                                        ++Offset;
+                                        OffsetTokenStart = Offset;
                                         continue;
 
-                                    case 92: /* \ */
-                                        break;
+                                    //case 92: /* \ */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 93: /* ] */
-                                        Context.BoundedCharArray.GlobalProtected = -1;
+                                        BoundedCharArray.GlobalProtected = -1;
                                         //
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenArrayEnd;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
-                                        OffsetTokenStart = Offset + 1;
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenArrayEnd;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
+                                        ++Offset;
+                                        OffsetTokenStart = Offset;
                                         goto lblDone;
 
-                                    case 94: /* ^ */
-                                    case 95: /* _ */
-                                    case 96: /* ` */
-                                    case 97: /* a */
-                                    case 98: /* b */
-                                    case 99: /* c */
-                                    case 100: /* d */
-                                    case 101: /* e */
-                                        break;
+                                    //case 94: /* ^ */
+                                    //case 95: /* _ */
+                                    //case 96: /* ` */
+                                    //case 97: /* a */
+                                    //case 98: /* b */
+                                    //case 99: /* c */
+                                    //case 100: /* d */
+                                    //case 101: /* e */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 102: /* f */
                                         State = ParserState.F;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
 
-                                    case 103: /* g */
-                                    case 104: /* h */
-                                    case 105: /* i */
-                                    case 106: /* j */
-                                    case 107: /* k */
-                                    case 108: /* l */
-                                    case 109: /* m */
-                                        break;
+                                    //case 103: /* g */
+                                    //case 104: /* h */
+                                    //case 105: /* i */
+                                    //case 106: /* j */
+                                    //case 107: /* k */
+                                    //case 108: /* l */
+                                    //case 109: /* m */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 110: /* n */
                                         State = ParserState.N;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
 
-                                    case 111: /* o */
-                                    case 112: /* p */
-                                    case 113: /* q */
-                                    case 114: /* r */
-                                    case 115: /* s */
-                                        break;
+                                    //case 111: /* o */
+                                    //case 112: /* p */
+                                    //case 113: /* q */
+                                    //case 114: /* r */
+                                    //case 115: /* s */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 116: /* t */
                                         State = ParserState.T;
                                         OffsetTokenStart = Offset;
+                                        ++Offset;
                                         continue;
 
-                                    case 117: /* u */
-                                    case 118: /* v */
-                                    case 119: /* w */
-                                    case 120: /* x */
-                                    case 121: /* y */
-                                    case 122: /* z */
-                                        break;
+                                    //case 117: /* u */
+                                    //case 118: /* v */
+                                    //case 119: /* w */
+                                    //case 120: /* x */
+                                    //case 121: /* y */
+                                    //case 122: /* z */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
 
                                     case 123: /* { */
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenObjectStart;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
-                                        OffsetTokenStart = Offset + 1;
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenObjectStart;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
+                                        ++Offset;
+                                        OffsetTokenStart = Offset;
                                         continue;
 
-                                    case 124: /* | */
-                                        break;
+                                    // case 124: /* | */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     case 125: /* } */
-                                        Context.BoundedCharArray.GlobalProtected = -1;
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenObjectEnd;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        BoundedCharArray.GlobalProtected = -1;
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenObjectEnd;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                         OffsetTokenStart = Offset + 1;
+                                        ++Offset;
                                         goto lblDone;
 
-                                    case 126: /* ~ */
-                                        break;
-                                    case 127: /*   */
-                                        break;
+                                    //case 126: /* ~ */
+                                    //case 127: /*   */
+                                    //    OffsetTokenStart = Offset;
+                                    //    goto lblUnexpectedChar;
+
                                     default:
-                                        break;
+                                        OffsetTokenStart = Offset;
+                                        goto lblUnexpectedChar;
                                 }
                                 //
-                                goto lblUnexpectedChar;
+                                // goto lblUnexpectedChar;
                             }
 
                         case ParserState.T:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'R':
                                 case (byte)'r':
                                     State = ParserState.TR;
@@ -393,7 +465,7 @@ namespace Brimborium.Json {
 
                         case ParserState.TR:
                             lblTR:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'U':
                                 case (byte)'u':
                                     State = ParserState.TRU;
@@ -409,19 +481,18 @@ namespace Brimborium.Json {
 
                         case ParserState.TRU:
                             lblTRU:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'E':
                                 case (byte)'e':
-
-                                    var offset1 = Offset + 1;
-                                    if (((offset1) < length)
-                                        ? GetEndOfValueNextValue(usedSpan[offset1])
-                                        : finalContent
+                                    ++Offset;
+                                    if ((Offset < length)
+                                        ? GetEndOfValueNextValue(sourceSpan[Offset])
+                                        : FinalContent
                                         ) {
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenTrue;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenTrue;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                         State = ParserState.Start;
-                                        OffsetTokenStart = offset1;
+                                        OffsetTokenStart = Offset;
                                         continue;
                                     } else {
                                         --Offset;
@@ -432,7 +503,7 @@ namespace Brimborium.Json {
                             }
 
                         case ParserState.F:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'A':
                                 case (byte)'a':
                                     State = ParserState.TRU;
@@ -448,7 +519,7 @@ namespace Brimborium.Json {
 
                         case ParserState.FA:
                             lblFA:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'L':
                                 case (byte)'l':
                                     State = ParserState.FAL;
@@ -464,7 +535,7 @@ namespace Brimborium.Json {
 
                         case ParserState.FAL:
                             lblFAL:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'S':
                                 case (byte)'s':
                                     State = ParserState.FALS;
@@ -480,15 +551,15 @@ namespace Brimborium.Json {
 
                         case ParserState.FALS:
                             lblFALS:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'E':
                                 case (byte)'e':
                                     if ((++Offset < length)
-                                        ? GetEndOfValueNextValue(usedSpan[Offset])
-                                        : finalContent
+                                        ? GetEndOfValueNextValue(sourceSpan[Offset])
+                                        : FinalContent
                                         ) {
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenFalse;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenFalse;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                         State = ParserState.Start;
                                         OffsetTokenStart = Offset;
                                         continue;
@@ -501,7 +572,7 @@ namespace Brimborium.Json {
                             }
 
                         case ParserState.N:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'U':
                                 case (byte)'u':
                                     State = ParserState.NU;
@@ -517,7 +588,7 @@ namespace Brimborium.Json {
 
                         case ParserState.NU:
                             lblNU:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'L':
                                 case (byte)'l':
                                     State = ParserState.NUL;
@@ -533,15 +604,15 @@ namespace Brimborium.Json {
 
                         case ParserState.NUL:
                             lblNUL:
-                            switch (current = usedSpan[Offset]) {
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'L':
                                 case (byte)'l':
                                     if ((++Offset < length)
-                                        ? GetEndOfValueNextValue(usedSpan[Offset])
-                                        : finalContent
+                                        ? GetEndOfValueNextValue(sourceSpan[Offset])
+                                        : FinalContent
                                         ) {
-                                        Context.Tokens[IdxToken++] = JsonReaderContext.TokenNull;
-                                        if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        Tokens[FeedIndexToken++] = JsonToken.TokenNull;
+                                        if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                         State = ParserState.Start;
                                         continue;
                                     } else {
@@ -553,35 +624,38 @@ namespace Brimborium.Json {
                             }
 
                         case ParserState.QuoteStart:
-                            Context.BoundedCharArray.GlobalProtected = Offset + Context.BoundedCharArray.GlobalShift;
-                            --Offset;
-                            while (++Offset < length) {
-                                switch (current = usedSpan[Offset]) {
+                            BoundedCharArray.GlobalProtected = Offset + BoundedCharArray.GlobalShift;
+
+                            while (Offset < length) {
+                                switch (current = sourceSpan[Offset]) {
                                     case 10: { /* \n */
+                                            ++Offset;
                                             this.LineNo++;
-                                            this.LineOffset = Offset + 1;
+                                            this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                         }
                                         continue;
 
                                     case 13: { /* \r */
+                                            ++Offset;
                                             this.LineNo++;
-                                            if ((Offset + 1) < length) {
-                                                current = usedSpan[Offset + 1];
+                                            if (Offset < length) {
+                                                current = sourceSpan[Offset];
                                                 if (current == 10) {
                                                     ++Offset;
                                                 }
                                             }
-                                            this.LineOffset = Offset + 1;
+                                            this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                         }
                                         continue;
 
                                     case (byte)'"': {
-                                            var jsonToken = this.Context.RentFromTokenCache();
+                                            var jsonToken = this.JsonSource.RentFromTokenCache();
                                             jsonToken.SetKindUtf8(JsonTokenKind.StringSimpleUtf8, OffsetTokenStart + 1, Offset - 1);
-                                            Context.Tokens[IdxToken++] = jsonToken;
-                                            if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                            Tokens[FeedIndexToken++] = jsonToken;
+                                            if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                             State = ParserState.Start;
-                                            OffsetTokenStart = Offset + 1;
+                                            ++Offset;
+                                            OffsetTokenStart = Offset;
                                         }
                                         goto lblQuoteStartNext;
 
@@ -592,14 +666,14 @@ namespace Brimborium.Json {
                                             //state = ParserState.QuoteBackSlash;
                                             var len = (Offset - OffsetTokenStart);
                                             if (len > 0) {
-                                                Context.BoundedCharArray.AdjustBeforeFeeding(
+                                                BoundedCharArray.AdjustBeforeFeeding(
                                                 len,
                                                 InitialCharBufferSize
                                                 );
                                                 var countChars = StringUtility.ConvertFromUtf8(
-                                                    usedSpan.Slice(OffsetTokenStart, len),
-                                                    Context.BoundedCharArray.GetFeedSpan());
-                                                Context.BoundedCharArray.AdjustAfterFeeding(countChars);
+                                                    sourceSpan.Slice(OffsetTokenStart, len),
+                                                    BoundedCharArray.GetFeedSpan());
+                                                BoundedCharArray.AdjustAfterFeeding(countChars);
                                             }
                                         }
                                         goto lblQuoteStartNext;
@@ -608,17 +682,18 @@ namespace Brimborium.Json {
                                         if (current < 127) {
                                             // short loop
                                             // add key magic here 
+                                            ++Offset;
                                             continue;
                                         } else {
                                             --Offset;
                                             State = ParserState.QuoteContentComplex;
                                             var len = (Offset - OffsetTokenStart);
                                             if (len > 0) {
-                                                Context.BoundedCharArray.AdjustBeforeFeeding(len, InitialCharBufferSize);
+                                                BoundedCharArray.AdjustBeforeFeeding(len, InitialCharBufferSize);
                                                 var countChars = StringUtility.ConvertFromUtf8(
-                                                    usedSpan.Slice(OffsetTokenStart, len),
-                                                    Context.BoundedCharArray.GetFeedSpan());
-                                                Context.BoundedCharArray.AdjustAfterFeeding(countChars);
+                                                    sourceSpan.Slice(OffsetTokenStart, len),
+                                                    BoundedCharArray.GetFeedSpan());
+                                                BoundedCharArray.AdjustAfterFeeding(countChars);
                                             }
                                             goto lblQuoteStartNext;
                                         }
@@ -628,31 +703,36 @@ namespace Brimborium.Json {
                             break;
 
                         case ParserState.QuoteContentComplex:
-                            --Offset;
-                            while (++Offset < length) {
-                                switch (current = usedSpan[Offset]) {
+                            while (Offset < length) {
+                                switch (current = sourceSpan[Offset]) {
                                     case 10: /* \n */
+                                        ++Offset;
                                         this.LineNo++;
-                                        this.LineOffset = Offset + 1;
+                                        this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                         continue;
                                     case 13: /* \r */
+                                        ++Offset;
                                         this.LineNo++;
-                                        if ((Offset + 1) < length) {
-                                            current = usedSpan[Offset + 1];
+                                        if ((Offset) < length) {
+                                            current = sourceSpan[Offset];
                                             if (current == 10) {
                                                 ++Offset;
                                             }
                                         }
-                                        this.LineOffset = Offset + 1;
+                                        this.LineGlobalOffset = Offset + BoundedByteArray.GlobalReadOffset;
                                         continue;
 
                                     case (byte)'"':
-                                        if ((++Offset < length)
-                                           ? GetEndOfValueNextValue(usedSpan[Offset])
-                                           : finalContent
-                                           ) {
-                                            Context.Tokens[IdxToken++].SetKind(JsonTokenKind.StringSimpleUtf8);
-                                            if (IdxToken >= tokensLength) { goto lblTokensLength; }
+                                        ++Offset;
+                                        if ((Offset < length)
+                                            ? GetEndOfValueNextValue(sourceSpan[Offset])
+                                            : FinalContent
+                                            ) {
+#warning TODO
+                                            var jsonToken = RentFromTokenCache();
+                                            jsonToken.SetKind(JsonTokenKind.StringSimpleUtf8);
+                                            Tokens[FeedIndexToken++] = jsonToken;
+                                            if (FeedIndexToken >= FeedIndexTokenLimit) { goto lblTokensLength; }
                                             State = ParserState.Start;
                                             goto lblQuoteContentComplexNext;
                                         } else {
@@ -662,6 +742,7 @@ namespace Brimborium.Json {
 
                                     case (byte)'\\':
                                         State = ParserState.QuoteBackSlash;
+                                        ++Offset;
                                         goto lblQuoteContentComplexNext;
 
                                     default:
@@ -673,44 +754,65 @@ namespace Brimborium.Json {
                             break;
 
                         case ParserState.QuoteBackSlash:
-                            continue;
+#warning TODO
+                            throw new NotImplementedException("TODO QuoteBackSlash");
+                        // continue;
 
                         case ParserState.Slash:
-                            switch (current = usedSpan[Offset]) {
+#warning TODO
+                            switch (current = sourceSpan[Offset]) {
                                 case (byte)'/':
                                     break;
                                 case (byte)'*':
                                     break;
                             }
-                            break;
+                            throw new NotImplementedException("TODO Slash");
+                        // break;
 
                         case ParserState.NumberSignMinus:
+                            throw new NotImplementedException("TODO NumberSignMinus");
                         case ParserState.NumberSignPlus:
-                            break;
+                            throw new NotImplementedException("TODO NumberSignPlus");
+                        // break;
+
                         case ParserState.NumberInt:
-                            break;
+                            throw new NotImplementedException("TODO NumberInt");
+                        // break;
+
                         default:
-                            break;
+                            throw new NotImplementedException("TODO default");
+                            // break;
                     }
                 }
                 //
             }
             //
-            lblDone:
 
+            lblDone:
+            NeedMoreContent = 0;
+            this.GlobalOffset = Offset + protectRange.lowerGlobalOffset;
+            this.GlobalOffsetTokenStart = OffsetTokenStart + protectRange.lowerGlobalOffset;
+            JsonSource.BoundedByteArray.AdjustAfterReading(Offset);
             return;
 
             lblNeedMoreContent:
-            throw new NotImplementedException($"TODO {Offset}");
+            NeedMoreContent = Offset + protectRange.lowerGlobalOffset;
+            if (BoundedByteArray.GlobalProtected < 0) { 
+                BoundedByteArray.GlobalProtected = OffsetTokenStart + protectRange.lowerGlobalOffset;
+            }
+            this.GlobalOffset = Offset + protectRange.lowerGlobalOffset;
+            this.GlobalOffsetTokenStart = OffsetTokenStart + protectRange.lowerGlobalOffset;
+            JsonSource.BoundedByteArray.AdjustAfterReading(Offset);
+            return;
 
             lblUnexpectedChar:
-            throw new ArgumentException($"Unexpected Char {current} L:{this.LineNo}; C:{Offset - this.LineOffset + 1};");
+            Faulted = true;
+            throw new ArgumentException($"Unexpected Char {current} L:{this.LineNo}; C:{(Offset - (this.LineGlobalOffset - BoundedByteArray.GlobalReadOffset))};");
+            
 
             lblTokensLength:
+            Faulted = true;
             throw new InvalidOperationException("TokensLength too big.");
-        }
-
-        public void Finalize(BoundedByteArray src) {
         }
 
         public bool GetEndOfValueNextValue(byte current) {

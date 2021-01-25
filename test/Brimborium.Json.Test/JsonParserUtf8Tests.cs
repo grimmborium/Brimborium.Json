@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -9,49 +10,41 @@ using Xunit;
 
 namespace Brimborium.Json {
     public class JsonParserUtf8Tests {
-        //        [Fact]
-        //        public async Task JsonParserUtf8_001_EmptyObject() {
-        //            string json = "{}";
-        //                InvokeParse(json, (context, iteration) => {
-        //                    if (iteration == 0) {
-        //                        Assert.Equal(2, context.CountToken);
-        //                        var token0 = context.ReadCurrentToken();
-        //                        var token1 = context.ReadCurrentToken();
-        //                        Assert.Equal(0, context.CountToken);
-
-        //                        Assert.Equal(JsonTokenKind.ObjectStart, token0.Kind);
-        //                        Assert.Equal(JsonTokenKind.ObjectEnd, token1.Kind);
-
-        //                        return true;
-        //                    }
-        //                    if (iteration == 1) {
-        //#warning                        Assert.Equal(0, context.CountToken);
-        //                    }
-        //                    return false;
-        //                });
-        //            Assert.Equal(
-        //                1,
-        //                InvokeParse(json, (context, iteration) => {
-        //                    Assert.Equal(new JsonTokenKind[] { JsonTokenKind.ObjectStart, JsonTokenKind.ObjectEnd }, GetTokenKinds(context));
-        //                    return false;
-        //                }));
-        //        }
+        [Fact]
+        public async Task JsonParserUtf8_001_EmptyObject() {
+            string json = "{}";
+            await InvokeParse(json, async (jsonSource) => {
+                if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ObjectStart, jsonSource.CurrentToken.Kind);
+                jsonSource.Advance();
+                if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ObjectEnd, jsonSource.CurrentToken.Kind);
+                jsonSource.Advance();
+            });
+            await InvokeParse(json, async (jsonSource) => {
+                if (jsonSource.EnsureTokens(2)) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ObjectStart, jsonSource.GetToken(0).Kind);
+                Assert.Equal(JsonTokenKind.ObjectEnd, jsonSource.GetToken(1).Kind);
+                jsonSource.Advance(2);
+            });
+        }
 
         [Fact]
         public async Task JsonParserUtf8_002_EmptyArray() {
             string json = "[]";
-            await InvokeParse(json, async (context) => {
-                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
-                context.Advance();
-                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
+            await InvokeParse(json, async (jsonSource) => {
+                if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ArrayStart, jsonSource.CurrentToken.Kind);
+                jsonSource.Advance();
+                if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ArrayEnd, jsonSource.CurrentToken.Kind);
+                jsonSource.Advance();
             });
-            await InvokeParse(json, async (context) => {
-                if (context.EnsureTokens(2)) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayStart, context.GetToken(0).Kind);
-                Assert.Equal(JsonTokenKind.ArrayEnd, context.GetToken(1).Kind);
-                context.Advance(2);
+            await InvokeParse(json, async (jsonSource) => {
+                if (jsonSource.EnsureTokens(2)) { await jsonSource.EnsureTokensAsync(); }
+                Assert.Equal(JsonTokenKind.ArrayStart, jsonSource.GetToken(0).Kind);
+                Assert.Equal(JsonTokenKind.ArrayEnd, jsonSource.GetToken(1).Kind);
+                jsonSource.Advance(2);
             });
         }
 
@@ -110,29 +103,32 @@ namespace Brimborium.Json {
         //                }));
         //        }
 
+        [Fact]
         public async Task JsonParserUtf8_011_BooleanManyArray() {
-            //string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
-            string json = "[true,true,true,]";
-            await InvokeParse(json, async (context) => {
-                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayStart, context.CurrentToken.Kind);
-                context.Advance();
+            string json = "[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,]";
+            for (int loop = 0; loop < 100000; loop++) {
+                //string json = "[true,true,true,]";
+                await InvokeParse(json, async (jsonSource) => {
+                    if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                    Assert.Equal(JsonTokenKind.ArrayStart, jsonSource.CurrentToken.Kind);
+                    jsonSource.Advance();
 
 
-                while (true) {
-                    if (context.EnsureTokens(2)) { await context.EnsureTokensAsync(); }
-                    if (context.GetToken(0).Kind == JsonTokenKind.ArrayEnd) { break; }
-                    Assert.Equal(JsonTokenKind.True, context.GetToken(0).Kind);
-                    Assert.Equal(JsonTokenKind.ValueSep, context.GetToken(1).Kind);
-                    context.Advance(2);
-                }
+                    while (true) {
+                        if (jsonSource.EnsureTokens(2)) { await jsonSource.EnsureTokensAsync(); }
+                        if (jsonSource.GetToken(0).Kind == JsonTokenKind.ArrayEnd) { break; }
+                        Assert.Equal(JsonTokenKind.True, jsonSource.GetToken(0).Kind);
+                        Assert.Equal(JsonTokenKind.ValueSep, jsonSource.GetToken(1).Kind);
+                        jsonSource.Advance(2);
+                    }
 
-                if (context.EnsureTokens()) { await context.EnsureTokensAsync(); }
-                Assert.Equal(JsonTokenKind.ArrayEnd, context.CurrentToken.Kind);
-                context.Advance();
+                    if (jsonSource.EnsureTokens()) { await jsonSource.EnsureTokensAsync(); }
+                    Assert.Equal(JsonTokenKind.ArrayEnd, jsonSource.CurrentToken.Kind);
+                    jsonSource.Advance();
 
-                Assert.Equal(JsonTokenKind.EOF, context.CurrentToken.Kind);
-            });
+                    Assert.Equal(JsonTokenKind.EOF, jsonSource.CurrentToken.Kind);
+                });
+            }
         }
 
         //        [Fact]
@@ -172,10 +168,10 @@ namespace Brimborium.Json {
         /*
         */
 
-        private JsonTokenKind[] GetTokenKinds(JsonReaderContext context) {
-            var result = new JsonTokenKind[context.CountToken];
-            for (int idx = context.ReadIndexToken; idx < context.FeedIndexToken; idx++) {
-                result[idx] = context.Tokens[idx].Kind;
+        private JsonTokenKind[] GetTokenKinds(JsonSource jsonSource) {
+            var result = new JsonTokenKind[jsonSource.CountToken];
+            for (int idx = jsonSource.ReadIndexToken; idx < jsonSource.FeedIndexToken; idx++) {
+                result[idx] = jsonSource.Tokens[idx].Kind;
             }
             return result;
         }
@@ -185,16 +181,28 @@ namespace Brimborium.Json {
         //    Assert.Equal(context.CountToken);
         //}
 
-        private static async Task InvokeParse(string json, Action<JsonReaderContext> action) {
-            JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
-            var parser = new JsonParserUtf8(context);
+        //private static async Task InvokeParse(string json, Action<JsonReaderContext> action) {
+        //    JsonReaderContext context = JsonReaderContextPool.Instance.Rent();
+        //    var parser = new JsonParserUtf8(context);
+        //    JsonText jsonText = new JsonText(json, false);
+        //    var utf8 = jsonText.GetUtf8();
+        //    BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
+        //    context = new JsonReaderContext();
+        //    parser.Parse(src, true);
+        //    action(context);
+        //    JsonReaderContextPool.Instance.Return(context);
+        //}
+
+        private static async Task InvokeParse(string json, Action<JsonSourceUtf8> action) {
             JsonText jsonText = new JsonText(json, false);
             var utf8 = jsonText.GetUtf8();
+            MemoryStream ms = new MemoryStream(utf8);
+            JsonConfiguration configuration = new JsonConfiguration();
             BoundedByteArray src = new BoundedByteArray(utf8, 0, utf8.Length, false);
-            context = new JsonReaderContext();
-            parser.Parse(src, true);
-            action(context);
-            JsonReaderContextPool.Instance.Return(context);
+            using (var source = new JsonSourceUtf8SyncStream(ms, configuration)) {
+                await source.ReadFromSourceAsync();
+                action(source);
+            }
         }
     }
 }

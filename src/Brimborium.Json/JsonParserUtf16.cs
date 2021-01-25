@@ -25,44 +25,50 @@ namespace Brimborium.Json {
             NumberIEEE,
             EOF // must be the last
         }
-        public const int InitialCharBufferSize = 64 * 1024;
+
+
+        public JsonSourceUtf16 JsonSource;
+        public int InitialCharBufferSize;
+        //
         public int LineNo;
-        public int LineOffset;
+        public int LineGlobalOffset;
+        public int GlobalOffset;
+        public int GlobalOffsetTokenStart;
         public int NumberSign;
         public ulong uNumber;
         public long sNumber;
-        public int IdxToken;
-        public int Offset;
         public ParserState State;
-        public int OffsetTokenStart;
-        public bool FinalContent;
-        public JsonReaderContext Context;
+        public bool NeedMoreContent;
+        public bool Faulted;
+        public bool FinalContent => this.JsonSource.FinalContent;
 
-        public JsonParserUtf16(JsonReaderContext jsonReaderContext) {
-            Context = jsonReaderContext;
+        public JsonParserUtf16(JsonSourceUtf16 jsonSource, int initialCharBufferSize) {
+            JsonSource = jsonSource;
+            InitialCharBufferSize = (initialCharBufferSize > (4 * 1024)) ? initialCharBufferSize : (64 * 1024);
             //
             LineNo = 1;
-            LineOffset = 0;
+            LineGlobalOffset = 0;
+            GlobalOffset = 0;
+            GlobalOffsetTokenStart = 0;
             NumberSign = 0;
             uNumber = 0;
             sNumber = 0;
-            IdxToken = 0;
-            Offset = -1;
             State = 0;
-            OffsetTokenStart = 0;
-            FinalContent = false;
+            NeedMoreContent = false;
+            Faulted = false;
         }
 
-        public void Parse(BoundedByteArray src, bool finalContent) {
-            Context.BoundedByteArray = src;
-            Context.FinalContent = finalContent;
-            Parse();
+        public JsonToken RentFromTokenCache()
+            => this.JsonSource.RentFromTokenCache();
+        public void ReturnToTokenCache(JsonToken jsonToken)
+            => this.JsonSource.ReturnToTokenCache(jsonToken);
+
+        public void Parse(int countWanted = 1) {
+            if (this.Faulted) { return; }
+            if (countWanted < 1) { countWanted = 1; }
         }
 
-        public void Parse() {
-        }
-
-        public void Finalize(BoundedByteArray src) {
+        public void Finalize() {
         }
     }
 }

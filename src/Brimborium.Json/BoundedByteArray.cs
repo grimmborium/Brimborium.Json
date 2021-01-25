@@ -17,6 +17,7 @@ namespace Brimborium.Json {
 
         public int ReadLength => FeedOffset - ReadOffset;
         public int FeedLength => Buffer.Length - FeedOffset;
+        public int GlobalReadOffset => GlobalShift + ReadOffset;
 
         public BoundedByteArray(
                 byte[] buffer,
@@ -59,23 +60,31 @@ namespace Brimborium.Json {
         public Span<byte> GetFeedSpan()
             => new Span<byte>(Buffer, FeedOffset, this.Buffer.Length - FeedOffset);
 
-        public (int lowerOffset, int lowerLength,
-                int nextReadOffset, int nextFeedOffset) GetProtectRange() {
-            int lowerOffset = ReadOffset;
-            if (this.GlobalProtected <= 0) {
-                int localProtected = (this.GlobalProtected - this.GlobalShift);
-                if (localProtected < lowerOffset) {
-                    lowerOffset = localProtected;
+        public (
+                int lowerGlobalOffset, int lowerOffset, int lowerLength,
+                int nextReadOffset, int nextFeedOffset
+            ) GetProtectRange() {
+            int lowerGlobalOffset;
+            if (this.GlobalProtected > 0) {
+                if (this.GlobalProtected < this.GlobalShift) {
+                    lowerGlobalOffset = this.GlobalProtected;
+                } else {
+                    lowerGlobalOffset = this.ReadOffset + this.GlobalShift;
                 }
+            } else {
+                lowerGlobalOffset = this.ReadOffset + this.GlobalShift;
             }
+            int lowerOffset = lowerGlobalOffset - this.GlobalShift;
             int nextReadOffset = ReadOffset - lowerOffset;
             int nextFeedOffset = FeedOffset - lowerOffset;
 
             return (
+                lowerGlobalOffset: lowerGlobalOffset,
                 lowerOffset: lowerOffset,
                 lowerLength: nextFeedOffset,
                 nextReadOffset: nextReadOffset,
-                nextFeedOffset: nextFeedOffset);
+                nextFeedOffset: nextFeedOffset
+                );
         }
 
 
@@ -147,6 +156,7 @@ namespace Brimborium.Json {
                 if (next > this.FeedOffset) {
                     throw new ArgumentException($"Buffer overrun. ReadLength:{readLength}; ReadOffset:{ReadOffset}; FeedOffset:{FeedOffset};");
                 }
+                this.ReadOffset = next;
             }
         }
     }

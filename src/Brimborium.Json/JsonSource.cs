@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,47 +10,186 @@ namespace Brimborium.Json {
     public class JsonSource : IDisposable {
         private int _IsDisposed;
         public JsonConfiguration Configuration;
-        public JsonReaderContext Context;
+        private JsonReaderContext _Context;
+
+        public JsonToken[] Tokens;
+        public JsonToken[] TokenCache;
+        public int TokenCacheCount;
+        public BoundedByteArray BoundedByteArray;
+        public BoundedCharArray BoundedCharArray;
+        public bool FinalContent;
+        public readonly Stack<JsonTokenKind> Stack;
+        public int ReadIndexToken;
+        public int FeedIndexToken;
+        public int CountToken => FeedIndexToken - ReadIndexToken;
 
         public JsonSource(JsonConfiguration configuration) {
             this.Configuration = configuration;
-            this.Context = JsonReaderContextPool.Instance.Rent();
-        }
-
-        public virtual bool EnsureTokens(int count = 1) {
-            if ((this.Context.ReadIndexToken + count) < this.Context.FeedIndexToken) {
-                return true;
-            }
-#warning TODO add missing logic
-            return false;
-        }
-
-        public virtual async ValueTask EnsureTokensAsync(int count = 1) {
-            while (true) {
-                if ((this.Context.ReadIndexToken + count) < this.Context.FeedIndexToken) {
-                    return;
-                }
-                await this.ReadFromSourceAsync();
-#warning TODO add missing logic
-            }
+            this._Context = JsonReaderContextPool.Instance.Rent();
+            this.BoundedByteArray = this._Context.BoundedByteArray;
+            this.BoundedCharArray = this._Context.BoundedCharArray;
+            this.FinalContent = false;
+            this.Stack = new Stack<JsonTokenKind>();
+            this.ReadIndexToken = 0;
+            this.FeedIndexToken = 0;
         }
 
         public JsonToken CurrentToken
-            => this.Context.CurrentToken;
-        public JsonToken Token1
-            => this.Context.GetToken(1);
-        public JsonToken Token2
-            => this.Context.GetToken(2);
-        public JsonToken Token3
-            => this.Context.GetToken(3);
+            => (ReadIndexToken < FeedIndexToken)
+            ? Tokens[ReadIndexToken]
+            : (FinalContent)
+                ? JsonToken.TokenEOF
+                : JsonToken.TokenReadAwait;
 
+        public JsonToken GetToken(int offset)
+            => ((ReadIndexToken + offset) < FeedIndexToken)
+            ? Tokens[ReadIndexToken + offset]
+            : (FinalContent)
+                ? JsonToken.TokenEOF
+                : JsonToken.TokenReadAwait;
 
-        public virtual bool Advance(int count = 1) {
-            return this.Context.Advance(count);
+        //public bool EnsureTokens(int count = 1) {
+        //    return true;
+        //}
+
+        //public async ValueTask EnsureTokensAsync(int count = 1) {
+        //    await Task.CompletedTask;
+        //}
+
+        public bool Advance(int count = 1) {
+#warning TODO
+            while ((count--) > 0) {
+                if (this.ReadIndexToken < this.FeedIndexToken) {
+                    var currentToken = Tokens[ReadIndexToken];
+                    switch (currentToken.Kind) {
+                        case JsonTokenKind.ObjectStart:
+                            this.Stack.Push(JsonTokenKind.ObjectStart);
+                            break;
+                        case JsonTokenKind.ObjectEnd:
+                            this.Stack.Pop();
+                            break;
+                        case JsonTokenKind.ArrayStart:
+                            this.Stack.Push(JsonTokenKind.ArrayStart);
+                            break;
+                        case JsonTokenKind.ArrayEnd:
+                            this.Stack.Pop();
+                            break;
+                        //case JsonTokenKind.ValueSep:
+                        //    break;
+                        //case JsonTokenKind.PairSep:
+                        //    break;
+                        case JsonTokenKind.StringSimpleUtf8:
+                            this.ReturnToTokenCache(currentToken);
+#warning handle protected   currentToken.OffsetUtf8
+                            break;
+                        case JsonTokenKind.StringComplex:
+                            this.ReturnToTokenCache(currentToken);
+#warning handle protected   currentToken.OffsetUtf8
+                            break;
+                        //case JsonTokenKind.True:
+                        //    break;
+                        //case JsonTokenKind.False:
+                        //    break;
+                        //case JsonTokenKind.Null:
+                        //    break;
+                        case JsonTokenKind.Number:
+                            this.ReturnToTokenCache(currentToken);
+                            break;
+                        case JsonTokenKind.Value:
+                            this.TokenCache[TokenCacheCount++] = currentToken;
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                }
+            }
+            if (this.ReadIndexToken < this.FeedIndexToken) {
+                this.ReadIndexToken = 0;
+                this.FeedIndexToken = 0;
+                return true;
+            } else {
+                return false;
+            }
+            //var next = this.ReadIndexToken + count;
+            //if (next < FeedIndexToken) {
+            //    this.ReadIndexToken = next;
+            //return true;
+            //} else if (next == FeedIndexToken) {
+            //    this.ReadIndexToken = next;
+            //return false;
+            //} else {
+            //    throw new ArgumentException($"{count} leads to {next} >= {FeedIndexToken}");
+            //}
         }
 
-        public virtual async ValueTask ReadFromSourceAsync() {
-            await Task.CompletedTask;
+        public JsonToken RentFromTokenCache() {
+            if (this.TokenCacheCount > 0) {
+                return this.TokenCache[--this.TokenCacheCount] ?? new JsonToken();
+            }
+            return new JsonToken();
+        }
+
+        public void ReturnToTokenCache(JsonToken jsonToken) {
+            if (TokenCacheCount < this.TokenCache.Length) {
+                this.TokenCache[this.TokenCacheCount++] = jsonToken;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns>need more content</returns>
+        public virtual bool Parse(int count) {
+            return false;
+        }
+
+        /// <summary>
+        /// Try to parse without reading from the source (async).
+        /// </summary>
+        /// <param name="count">the number of token</param>
+        /// <returns>true if EnsureTokensAsync is needed</returns>
+        public virtual bool EnsureTokens(int count = 1) {
+            if ((this.ReadIndexToken + count) < this.FeedIndexToken) {
+                return false;
+            }
+            Parse(count + ReadIndexToken - this.FeedIndexToken );
+            if ((this.ReadIndexToken + count) < this.FeedIndexToken) {
+                return false;
+            }
+            return true;
+        }
+
+        public virtual async ValueTask EnsureTokensAsync(int count = 1) {
+            if (ReadIndexToken == FeedIndexToken) {
+                ReadIndexToken = 0;
+                FeedIndexToken = 0;
+            } else if ((this.ReadIndexToken + count) < this.FeedIndexToken) {
+                return;
+            }
+            var orgReadIndexToken = ReadIndexToken;
+            while (true) {
+                await this.ReadFromSourceAsync();
+                var needMoreContent = this.Parse(count + orgReadIndexToken - FeedIndexToken);
+                if (needMoreContent) {
+                    continue;
+                } else if ((this.ReadIndexToken + count) < this.FeedIndexToken) {
+                    return;
+                }            
+            }
+        }
+
+        public JsonToken Token1
+            => this.GetToken(1);
+        public JsonToken Token2
+            => this.GetToken(2);
+        public JsonToken Token3
+            => this.GetToken(3);
+
+
+        public virtual ValueTask ReadFromSourceAsync() {
+            throw new NotImplementedException("ReadFromSourceAsync");
         }
 
         protected bool IsDisposed => this._IsDisposed != 0;
@@ -67,9 +207,9 @@ namespace Brimborium.Json {
         }
 
         protected virtual void Disposing(bool disposing) {
-            JsonReaderContextPool.Instance.Return(this.Context);
+            JsonReaderContextPool.Instance.Return(this._Context, this.TokenCacheCount);
             this.Configuration = null!;
-            this.Context = null!;
+            this._Context = null!;
         }
 
         //~JsonSink() {
@@ -86,12 +226,11 @@ namespace Brimborium.Json {
         public JsonParserUtf8 Parser;
         public JsonSourceUtf8(JsonConfiguration configuration)
             : base(configuration.GetForUtf8()) {
-            this.Parser = new JsonParserUtf8(this.Context);
+            this.Parser = new JsonParserUtf8(this, 0);
         }
 
         protected override void Disposing(bool disposing) {
             base.Disposing(disposing);
-            JsonReaderContextPool.Instance.Return(this.Context);
         }
     }
 
@@ -99,7 +238,7 @@ namespace Brimborium.Json {
         public JsonParserUtf16 Parser;
         public JsonSourceUtf16(JsonConfiguration configuration)
             : base(configuration.GetForUtf16()) {
-            this.Parser = new JsonParserUtf16(this.Context);
+            this.Parser = new JsonParserUtf16(this, 0);
         }
     }
 
@@ -128,14 +267,27 @@ namespace Brimborium.Json {
         }
 
         public override async ValueTask ReadFromSourceAsync() {
-            this.Context.BoundedByteArray.AdjustBeforeFeeding(4096, DefaultInitialLength);
+            if (this.FinalContent) {
+                return;
+            }
+            this.BoundedByteArray.AdjustBeforeFeeding(4096, DefaultInitialLength);
             var read = await this._Stream.ReadAsync(
-                this.Context.BoundedByteArray.Buffer,
-                this.Context.BoundedByteArray.FeedOffset,
-                this.Context.BoundedByteArray.FeedLength);
-            this.Context.BoundedByteArray.AdjustAfterFeeding(read);
-            this.Context.FinalContent = (read == 0);
-            this.Parser.Parse(this.Context.BoundedByteArray, read == 0);
+                this.BoundedByteArray.Buffer,
+                this.BoundedByteArray.FeedOffset,
+                this.BoundedByteArray.FeedLength);
+            this.BoundedByteArray.AdjustAfterFeeding(read);
+            this.FinalContent = (read == 0);            
+        }
+
+        public override bool Parse(int count) {
+            if (count <= 0) {
+                return true;
+            }
+            if (this.Parser.Faulted) {
+                return false;
+            }
+            this.Parser.Parse(count);
+            return this.Parser.NeedMoreContent>0;
         }
     }
 

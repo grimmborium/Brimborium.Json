@@ -2,6 +2,20 @@
 
 namespace Brimborium.Json {
     public sealed class JsonToken {
+        public static JsonToken TokenFault = new JsonToken(JsonTokenKind.Fault);
+        public static JsonToken TokenEOF = new JsonToken(JsonTokenKind.EOF);
+        public static JsonToken TokenReadAwait = new JsonToken(JsonTokenKind.ReadAwait);
+        public static JsonToken TokenObjectStart = new JsonToken(JsonTokenKind.ObjectStart);
+        public static JsonToken TokenObjectEnd = new JsonToken(JsonTokenKind.ObjectEnd);
+        public static JsonToken TokenArrayStart = new JsonToken(JsonTokenKind.ArrayStart);
+        public static JsonToken TokenArrayEnd = new JsonToken(JsonTokenKind.ArrayEnd);
+        public static JsonToken TokenValueSep = new JsonToken(JsonTokenKind.ValueSep);
+        public static JsonToken TokenPairSep = new JsonToken(JsonTokenKind.PairSep);
+        public static JsonToken TokenTrue = new JsonToken(JsonTokenKind.True);
+        public static JsonToken TokenFalse = new JsonToken(JsonTokenKind.False);
+        public static JsonToken TokenNull = new JsonToken(JsonTokenKind.Null);
+        public static JsonToken TokenValue = new JsonToken(JsonTokenKind.Value);
+
         public JsonTokenKind Kind;
         public int OffsetUtf8;
         public int LengthUtf8;
